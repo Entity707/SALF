@@ -1,9 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="run" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="com.game.core.Main" />
-    <module name="core" />
-    <option name="PROGRAM_PARAMETERS" value="-Xmaxerrs 1000 -Xmaxwarns 1000" />
-    <option name="VM_PARAMETERS" value="-XX:+PrintCommandLineFlags -XX:+UseZGC -Xms2G -Xmx6G -XX:-OmitStackTraceInFastThrow -XX:-ZProactive -XX:-ZUncommit -XX:+UseCompactObjectHeaders -XstartOnFirstThread -Xlog:gc*:file=gc.log:time,uptime:filecount=5,filesize=10M --sun-misc-unsafe-memory-access=allow --enable-native-access=com.github.oshi.ffm,org.lwjgl,org.lwjgl.vma,org.lwjgl.stb" />
+    <option name="ALTERNATIVE_JRE_PATH" value="openjdk-ea-28" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="MAIN_CLASS_NAME" value="com.game.Main" />
+    <module name="SALF" />
+    <option name="PROGRAM_PARAMETERS" value="-Xmaxerrs 1000 -Xmaxwarns 1000 --enable-preview" />
+    <option name="VM_PARAMETERS" value="-XX:+PrintCommandLineFlags -XX:+UseZGC -Xms2G -Xmx6G -XX:-OmitStackTraceInFastThrow -XX:-ZProactive -XX:-ZUncommit -XX:+UseCompactObjectHeaders -XstartOnFirstThread --enable-preview -Xlog:gc*:file=gc.log:time,uptime:filecount=5,filesize=10M --sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

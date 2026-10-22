@@ -1,7 +1,7 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
-    <inspection_tool class="2bd1bce4-e6e7-32d0-9e93-961b0b50697d" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
+    <inspection_tool class="2bd1bce4-e6e7-32d0-9e93-961b0b50697d" enabled="false" level="WEAK WARNING" enabled_by_default="false" editorAttributes="INFO_ATTRIBUTES" />
     <inspection_tool class="SSBasedInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <searchConfiguration name="Unnamed inspection" text="$Type$ $Variable$;" recursive="true" caseInsensitive="false" type="JAVA" pattern_context="default">
         <constraint name="__context__" within="" contains="" />

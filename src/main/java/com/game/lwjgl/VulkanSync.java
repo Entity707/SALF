@@ -1,0 +1,78 @@
+package com.game.lwjgl;
+
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.VK14;
+import org.lwjgl.vulkan.VkFenceCreateInfo;
+import org.lwjgl.vulkan.VkSemaphoreCreateInfo;
+
+import java.nio.LongBuffer;
+
+class VulkanSync {
+  private VulkanSync() {
+  }
+  
+  static void makeSync(LwjglData lwjglData) {
+    try (MemoryStack stack = MemoryStack.stackPush()) {
+      VkSemaphoreCreateInfo semaphoreInfo = VkSemaphoreCreateInfo.calloc(stack)
+          .sType(VK14.VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
+      
+      VkFenceCreateInfo fenceInfo = VkFenceCreateInfo.calloc(stack)
+          .sType(VK14.VK_STRUCTURE_TYPE_FENCE_CREATE_INFO)
+          .flags(VK14.VK_FENCE_CREATE_SIGNALED_BIT);
+      
+      LongBuffer pSem1 = stack.mallocLong(1);
+      LongBuffer pFence = stack.mallocLong(1);
+      
+      for (int i = 0; i < lwjglData.MAX_FRAMES_IN_FLIGHT; i++) {
+        if (VK14.vkCreateSemaphore(lwjglData.vkDevice, semaphoreInfo, null, pSem1) != VK14.VK_SUCCESS ||
+            VK14.vkCreateFence(lwjglData.vkDevice, fenceInfo, null, pFence) != VK14.VK_SUCCESS) {
+          throw new RuntimeException("failed to create synchronization objects for frame " + i);
+        }
+        
+        lwjglData.imageAvailableSemaphores[i] = pSem1.get(0);
+        lwjglData.inFlightFences[i] = pFence.get(0);
+      }
+    }
+  }
+  
+  static void makeRenderFinished(LwjglData lwjglData) {
+    try (MemoryStack stack = MemoryStack.stackPush()) {
+      VkSemaphoreCreateInfo info = VkSemaphoreCreateInfo.calloc(stack).sType$Default();
+      LongBuffer pointer = stack.mallocLong(1);
+      lwjglData.renderFinishedSemaphores = new long[lwjglData.swapchainImages.length];
+      for (int i = 0; i < lwjglData.renderFinishedSemaphores.length; i++) {
+        if (VK14.vkCreateSemaphore(lwjglData.vkDevice, info, null, pointer) != VK14.VK_SUCCESS) {
+          throw new RuntimeException("failed to create render-finished semaphore");
+        }
+        lwjglData.renderFinishedSemaphores[i] = pointer.get(0);
+      }
+    }
+  }
+  
+  static void destroyRenderFinished(LwjglData lwjglData) {
+    if (lwjglData.renderFinishedSemaphores == null) return;
+    for (long semaphore : lwjglData.renderFinishedSemaphores) if (semaphore != 0) VK14.vkDestroySemaphore(lwjglData.vkDevice, semaphore, null);
+    lwjglData.renderFinishedSemaphores = null;
+  }
+  
+  static void cleanupSync(LwjglData lwjglData) {
+    if (lwjglData == null || lwjglData.vkDevice == null) {
+      return;
+    }
+    
+    VK14.vkDeviceWaitIdle(lwjglData.vkDevice);
+    
+    for (int i = 0; i < lwjglData.MAX_FRAMES_IN_FLIGHT; i++) {
+      if (lwjglData.imageAvailableSemaphores != null && lwjglData.imageAvailableSemaphores[i] != VK14.VK_NULL_HANDLE) {
+        VK14.vkDestroySemaphore(lwjglData.vkDevice, lwjglData.imageAvailableSemaphores[i], null);
+        lwjglData.imageAvailableSemaphores[i] = VK14.VK_NULL_HANDLE;
+      }
+      
+      
+      if (lwjglData.inFlightFences != null && lwjglData.inFlightFences[i] != VK14.VK_NULL_HANDLE) {
+        VK14.vkDestroyFence(lwjglData.vkDevice, lwjglData.inFlightFences[i], null);
+        lwjglData.inFlightFences[i] = VK14.VK_NULL_HANDLE;
+      }
+    }
+  }
+}

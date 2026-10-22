@@ -1,4 +1,4 @@
-Requires Jdk 25
+Requires Jdk 28
 Requires vulkan 1.4 compatible gpu
 
 It's a rts game made in java using LWJGL 3 Vulkan.(used to be Java Awt, then Java Fx, then LibGDX)
