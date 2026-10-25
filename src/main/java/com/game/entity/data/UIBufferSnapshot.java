@@ -11,33 +11,33 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 @Init(stage = 2)
 public class UIBufferSnapshot {
   static Char2IntOpenHashMap charBits;//TODO:generate this on startup
-  static Object2ObjectOpenHashMap<String, long[]> stringHashMap;
-  static Object2ObjectFunction<String, long[]> longsGenerator = (string->{
-    return new long[3];
-  });//TODO: make sure this works and make it actaully computes the longs
-  static long[] getLongs(String string){
-    return stringHashMap.computeIfAbsent(string, longsGenerator);
+  static Object2ObjectOpenHashMap<String, int[]> stringHashMap;
+  static Object2ObjectFunction<String, int[]> intsGenerator = (string->{
+    return new int[3];
+  });//TODO: make sure this works and make it actaully computes the ints
+  static int[] getLongs(String string){
+    return stringHashMap.computeIfAbsent(string, intsGenerator);
   }
   public static void init(LoadingScreen loadingScreen){
     //generate charBits here;
   }
   //43 letters 6 bits per letter
-  LongArrayList UIX;//13 bits of x when text
-  LongArrayList UIY;//same for y
-  LongArrayList UIData;
-  LongArrayList UIData2;
+  IntArrayList UIX;//13 bits of x when text
+  IntArrayList UIY;//same for y
+  IntArrayList UIData;
+  IntArrayList UIData2;
   IntArrayList UIType;//last 4 bits is aligment type
   //could maybe store some data in here for strings but its fine.
   
   UIBufferSnapshot(){
-    UIX = new LongArrayList();
-    UIY = new LongArrayList();
-    UIData = new LongArrayList();
-    UIData2 = new LongArrayList();
+    UIX = new IntArrayList();
+    UIY = new IntArrayList();
+    UIData = new IntArrayList();
+    UIData2 = new IntArrayList();
     UIType = new IntArrayList();
   }
   //rect
-  void addRectangle(long x, long y, long width, long height){
+  void addRectangle(int x, int y, int width, int height){
     UIX.add(x);
     UIY.add(y);
     UIData.add(width);
@@ -46,7 +46,7 @@ public class UIBufferSnapshot {
   }
   
   //circle
-  void addCicle(long x, long y, long radius){
+  void addCicle(int x, int y, int radius){
     UIX.add(x);
     UIY.add(y);
     UIData.add(radius);
@@ -55,10 +55,10 @@ public class UIBufferSnapshot {
   }
   
   //string
-  void addText(long x, long y, String string){
+  void addText(int x, int y, String string){
     UIX.add(x);
     UIY.add(y);
-    long[] value = getLongs(string);
+    int[] value = getLongs(string);
     UIData.add(value[0]);
     UIData2.add(value[1]);
     UIType.add((int)value[2]);//TODO: or the last 4 aligment bits onto the int

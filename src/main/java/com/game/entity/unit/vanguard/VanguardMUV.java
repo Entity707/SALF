@@ -14,12 +14,12 @@ import com.game.utils.NumUtil;
 
 import java.util.ArrayList;
 
-import static com.game.utils.NumUtil.FTL;
+import static com.game.utils.NumUtil.toScaled;
 
 @Init(stage = 2)
 public class VanguardMUV extends Unit {
 //  private static Models model;
-  private static long maxHp;
+  private static int maxHp;
   private static EntityDimension entityDimension;
 //  private static EnumSet<Tags> tags;
   private static UnitStats unitStats;
@@ -50,11 +50,11 @@ public class VanguardMUV extends Unit {
 //    return model;
 //  }
   
-  public VanguardMUV(long x, long y, PlayerColor player) {
+  public VanguardMUV(int x, int y, PlayerColor player) {
     super(player/*, Models.getModelInstance(Models.vanguardMUV)*/, new EntityPosition(x, y, 0, 0));
     
 //    tags = EnumSet.of(Tags.UNARMORED, Tags.MECHANICAL, Tags.MELEE);
-    hp = NumUtil.FTL((float) (Math.random() * 40));
+    hp = NumUtil.toScaled((float) (Math.random() * 40));
     ticksUntilAttack = 4;
     effects = new ArrayList<>();
     unitState = UnitState.IDLE;
@@ -68,8 +68,8 @@ public class VanguardMUV extends Unit {
     
 //    model = Models.vanguardMUV;
     entityDimension = new EntityDimension(10, 10, 6);
-    unitStats = new UnitStats(FTL(10), FTL(100), FTL(0.5f), FTL(4));
-    entityStats = new EntityStats(FTL(50), FTL(0));
+    unitStats = new UnitStats(toScaled(10), toScaled(100), toScaled(0.5f), toScaled(4));
+    entityStats = new EntityStats(toScaled(50), toScaled(0));
     loadingScreen.increment();
   }
   

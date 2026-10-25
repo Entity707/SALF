@@ -14,7 +14,7 @@ import com.game.screens.LoadingScreen;
 
 import java.util.ArrayList;
 
-import static com.game.utils.NumUtil.FTL;
+import static com.game.utils.NumUtil.toScaled;
 
 @Init(stage = 2)
 public class VanguardBarracks extends Building {
@@ -45,9 +45,9 @@ public class VanguardBarracks extends Building {
 //    return tags;
 //  }
 //
-  public VanguardBarracks(long x, long y, PlayerColor player/*, ModelInstance modelInstance*/) {
+  public VanguardBarracks(int x, int y, PlayerColor player/*, ModelInstance modelInstance*/) {
     super(player/*, modelInstance*/, new EntityPosition(x, y, 0, 0));
-    hp = FTL((float) (Math.random() * 2000));
+    hp = toScaled((float) (Math.random() * 2000));
     effects = new ArrayList<>();
   }
   
@@ -59,7 +59,7 @@ public class VanguardBarracks extends Building {
 //    model = Models.vanguardBarracks;
 //    tags = EnumSet.of(Tags.HEAVY_ARMORED, Tags.MECHANICAL, Tags.UNMOVABLE);
     entityDimension = new EntityDimension(55, 60, 30);
-    entityStats = new EntityStats(FTL(2000), FTL(3));
+    entityStats = new EntityStats(toScaled(2000), toScaled(3));
     loadingScreen.increment();
   }
 }

@@ -1,21 +1,15 @@
 package com.game;
 
 import com.game.draw.DrawManager;
-import com.game.screens.GameScreen;
-import com.game.screens.GameWindow;
+import com.game.lwjgl.LwjglManager;
 import com.game.screens.LoadingScreen;
-import com.game.screens.MapEditorScreen;
 import com.game.screens.ReplayScreen;
-import com.game.screens.SettingsScreen;
-import com.game.screens.TitleScreen;
+import com.game.screens.Screen;
 import com.game.settings.SettingsManager;
 import com.game.sound.SoundManager;
 import com.game.utils.LogType;
 import com.game.utils.LoggerUtil;
 import com.game.utils.PerformanceType;
-import com.game.input.Actions;
-import com.game.input.Input;
-import com.game.lwjgl.LwjglManager;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.reflections.Reflections;
 import oshi.ffm.SystemInfo;
@@ -48,26 +42,20 @@ public class GameCore /*extends Game */ {
   private Thread logicThread;
   private Thread drawThread;
   
-  
-  private GameScreen gameScreen;
-  private GameWindow tickScreen;
-  private LoadingScreen loadingScreen;
+  private volatile Screen screen;
+  private volatile LoadingScreen loadingScreen;
   
   private final SettingsManager settingsManager;
   
-  private TitleScreen titleScreen;
-  private MapEditorScreen mapEditorScreen;
-  private SettingsScreen settingsScreen;
   private final PerformanceStorage performanceStorage;
   private final HardwarePerformance hardwarePerformance;
   
   
   public GameCore() {
     settingsManager = new SettingsManager();
-    titleScreen = new TitleScreen();
     performanceStorage = new PerformanceStorage();
     hardwarePerformance = new HardwarePerformance();
-//        System.out.println(NumUtil.LTF(NumUtil.sqrtFastScaled(NumUtil.FTL(48291753))));//should be 6949 ish
+//        System.out.println(NumUtil.toUnscaledFloat(NumUtil.sqrtFastScaled(NumUtil.toScaled(48291753))));//should be 6949 ish
   }
   
   private synchronized GameStatus getGameStatus() {
@@ -85,119 +73,83 @@ public class GameCore /*extends Game */ {
         }*/
   }
   
-  private synchronized GameScreen getGame() {
-    return gameScreen;
-  }
-  
-  private synchronized void setGame(GameScreen gameScreen) {
-    this.gameScreen = gameScreen;
-  }
-  
-  private synchronized TitleScreen getTitleScreen() {
-    return titleScreen;
-  }
-  
-  private synchronized void setTitleScreen(TitleScreen titleScreen) {
-    this.titleScreen = titleScreen;
-  }
-  
-  private synchronized MapEditorScreen getMapEditor() {
-    return mapEditorScreen;
-  }
-  
-  private synchronized void setMapEditor(MapEditorScreen mapEditorScreen) {
-    this.mapEditorScreen = mapEditorScreen;
-  }
-  
-  private synchronized SettingsScreen getSettings() {
-    return settingsScreen;
-  }
-  
-  private synchronized void setSettings(SettingsScreen settingsScreen) {
-    this.settingsScreen = settingsScreen;
-  }
-  
-  public void startGameThread() {
-  
-  }
-  
-  //    TODO:make a cache so it dosent keep making them
+  //TODO:make a cache so it dosent keep making them
   private String formatString(float num, String format) {
     DecimalFormat df = new DecimalFormat(format);
     return Objects.toString(df.format(num));
   }
   
   public void tick() {
-    long startTime = System.nanoTime();
-    lwjglManager.refreshInputs();
-    switch (gameStatus) {
-      case GAME_LOADING:
-        if (gameScreen.isLoadingFinished()) {
-          setGameStatus(GameStatus.GAME);
-        }
-        break;
-      case GAME:
-        gameScreen.tick();
-        if (gameScreen.isExit()) {
-          setTitleScreen(new TitleScreen());
-          setGameStatus(GameStatus.TITLESCREEN);
-          LoggerUtil.log("open title screen");
-        }
-        break;
-      case TITLESCREEN:
-        tickScreen = getTitleScreen().copy();
-        tickScreen.tick();
-        if (tickScreen.isExit()) {
-                    /*switch (((TitleScreen) tickScreen).getSelectedButton()) {
-                        case MAP_EDITOR:
-                            setMapEditor(new MapEditorScreen());
-                            setGameStatus(GameStatus.MAP_EDITOR);
-                            LoggerUtil.log("open mapEditor");
-                            break;
-                        case SETTINGS:
-                            setSettings(settingsScreen = new SettingsScreen(settingsManager));
-                            setGameStatus(GameStatus.SETTINGS);
-                            LoggerUtil.log("open settings");
-                            break;
-                        case CUSTOM:
-                            if (titleScreen.getSelectedFile() == null) break;
-                            setGame(new GameScreen(getTitleScreen().getSelectedFile()));
-                            setGameStatus(GameStatus.GAME_LOADING);
-                            LoggerUtil.log("open custom");
-                            break;
-                    }*/
-          getTitleScreen().resetSelections();
-        } else {
-          setTitleScreen((TitleScreen) tickScreen);
-        }
-        break;
-      case MAP_EDITOR:
-        tickScreen = getMapEditor().copy();
-        tickScreen.tick();
-        setMapEditor((MapEditorScreen) tickScreen);
-        if (getMapEditor().isExit()) {
-          setGameStatus(GameStatus.TITLESCREEN);
-          LoggerUtil.log("open title screen");
-        }
-        break;
-      case SETTINGS:
-        tickScreen = getSettings().copy();
-        tickScreen.tick();
-        setSettings((SettingsScreen) tickScreen);
-        if (getSettings().isExit()) {
-          setGameStatus(GameStatus.TITLESCREEN);
-          LoggerUtil.log("open title screen");
-        }
-        break;
-    }
-    if (getGameStatus() != GameStatus.START_LOADING) {
-      for (Input input : lwjglManager.getInputs()) {
-        if (input.getAction() == Actions.CHANGE_BGM) {
-          SoundManager.newBGM();
-        }
-      }
-    }
-    lastTickTime.set(startTime);
+//    long startTime = System.nanoTime();
+//    lwjglManager.refreshInputs();
+//    switch (gameStatus) {
+//      case GAME_LOADING:
+//        if (gameScreen.isLoadingFinished()) {
+//          setGameStatus(GameStatus.GAME);
+//        }
+//        break;
+//      case GAME:
+//        gameScreen.tick();
+//        if (gameScreen.isExit()) {
+//          setTitleScreen(new TitleScreen());
+//          setGameStatus(GameStatus.TITLESCREEN);
+//          LoggerUtil.log("open title screen");
+//        }
+//        break;
+//      case TITLESCREEN:
+//        tickScreen = getTitleScreen().copy();
+//        tickScreen.tick();
+//        if (tickScreen.isExit()) {
+//                    /*switch (((TitleScreen) tickScreen).getSelectedButton()) {
+//                        case MAP_EDITOR:
+//                            setMapEditor(new MapEditorScreen());
+//                            setGameStatus(GameStatus.MAP_EDITOR);
+//                            LoggerUtil.log("open mapEditor");
+//                            break;
+//                        case SETTINGS:
+//                            setSettings(settingsScreen = new SettingsScreen(settingsManager));
+//                            setGameStatus(GameStatus.SETTINGS);
+//                            LoggerUtil.log("open settings");
+//                            break;
+//                        case CUSTOM:
+//                            if (titleScreen.getSelectedFile() == null) break;
+//                            setGame(new GameScreen(getTitleScreen().getSelectedFile()));
+//                            setGameStatus(GameStatus.GAME_LOADING);
+//                            LoggerUtil.log("open custom");
+//                            break;
+//                    }*/
+//          getTitleScreen().resetSelections();
+//        } else {
+//          setTitleScreen((TitleScreen) tickScreen);
+//        }
+//        break;
+//      case MAP_EDITOR:
+//        tickScreen = getMapEditor().copy();
+//        tickScreen.tick();
+//        setMapEditor((MapEditorScreen) tickScreen);
+//        if (getMapEditor().isExit()) {
+//          setGameStatus(GameStatus.TITLESCREEN);
+//          LoggerUtil.log("open title screen");
+//        }
+//        break;
+//      case SETTINGS:
+//        tickScreen = getSettings().copy();
+//        tickScreen.tick();
+//        setSettings((SettingsScreen) tickScreen);
+//        if (getSettings().isExit()) {
+//          setGameStatus(GameStatus.TITLESCREEN);
+//          LoggerUtil.log("open title screen");
+//        }
+//        break;
+//    }
+//    if (getGameStatus() != GameStatus.START_LOADING) {
+//      for (Input input : lwjglManager.getInputs()) {
+//        if (input.getAction() == Actions.CHANGE_BGM) {
+//          SoundManager.newBGM();
+//        }
+//      }
+//    }
+//    lastTickTime.set(startTime);
   }
   
   
@@ -557,14 +509,14 @@ class PerformanceStorage {
         System.arraycopy(dtHistory, 0, sortedCopy, 0, dtCount);
         java.util.Arrays.sort(sortedCopy);
         
-        int limit1 = Math.max(1, (int) Math.round(dtCount / 100.0));
+        int limit1 = StrictMath.max(1, (int) StrictMath.round(dtCount / 100.0));
         double sum1 = 0;
         for (int i = dtCount - 1; i >= dtCount - limit1; i--) {
           sum1 += sortedCopy[i];
         }
         this.peakDT = sum1 / limit1;
         
-        int limit01 = Math.max(1, (int) Math.round(dtCount / 1000.0));
+        int limit01 = StrictMath.max(1, (int) StrictMath.round(dtCount / 1000.0));
         double sum01 = 0;
         for (int i = dtCount - 1; i >= dtCount - limit01; i--) {
           sum01 += sortedCopy[i];

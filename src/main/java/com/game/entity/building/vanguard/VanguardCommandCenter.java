@@ -13,7 +13,7 @@ import com.game.screens.LoadingScreen;
 
 import java.util.ArrayList;
 
-import static com.game.utils.NumUtil.FTL;
+import static com.game.utils.NumUtil.toScaled;
 
 @Init(stage = 2)
 public class VanguardCommandCenter extends Building {
@@ -44,9 +44,9 @@ public class VanguardCommandCenter extends Building {
 //    return null;
 //  }
 //
-  public VanguardCommandCenter(long x, long y, PlayerColor player/*, ModelInstance modelInstance*/) {
+  public VanguardCommandCenter(int x, int y, PlayerColor player/*, ModelInstance modelInstance*/) {
     super(player/*, modelInstance*/, new EntityPosition(x, y, 0, 0));
-    hp = FTL((float) (Math.random() * 2000));
+    hp = toScaled((float) (Math.random() * 2000));
     effects = new ArrayList<>();
   }
   
@@ -59,7 +59,7 @@ public class VanguardCommandCenter extends Building {
     
 //    model = Models.vanguardCommandCenter;
     entityDimension = new EntityDimension(100, 100, 50);
-    entityStats = new EntityStats(FTL(2000), FTL(3));
+    entityStats = new EntityStats(toScaled(2000), toScaled(3));
     loadingScreen.increment();
   }
 }

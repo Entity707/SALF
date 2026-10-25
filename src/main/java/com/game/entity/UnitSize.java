@@ -7,35 +7,35 @@ public class UnitSize {
   private final float height;
   private final float halfWidth;
   private final float halfHeight;
-  private final long scaledWidth;
-  private final long scaledHeight;
-  private final long scaledHalfWidth;
-  private final long scaledHalfHeight;
+  private final int scaledWidth;
+  private final int scaledHeight;
+  private final int scaledHalfWidth;
+  private final int scaledHalfHeight;
   private final float boundingRadius;
   private final float boundingDiameter;
-  private final long boundingRadiusScaled;
-  private final long boundingDiameterScaled;
+  private final int boundingRadiusScaled;
+  private final int boundingDiameterScaled;
   
   public UnitSize(float width, float height, float radius) {
     this.width = width;
     halfWidth = width / 2;
-    scaledWidth = NumUtil.FTL(width);
-    scaledHalfWidth = NumUtil.FTL(width / 2);
+    scaledWidth = NumUtil.toScaled(width);
+    scaledHalfWidth = NumUtil.toScaled(width / 2);
     this.height = height;
     halfHeight = height / 2;
-    scaledHeight = NumUtil.FTL(height);
-    scaledHalfHeight = NumUtil.FTL(height / 2);
+    scaledHeight = NumUtil.toScaled(height);
+    scaledHalfHeight = NumUtil.toScaled(height / 2);
     this.boundingRadius = radius;
     boundingDiameter = radius * 2;
-    boundingRadiusScaled = NumUtil.FTL(radius);
-    boundingDiameterScaled = NumUtil.FTL(radius * 2);
+    boundingRadiusScaled = NumUtil.toScaled(radius);
+    boundingDiameterScaled = NumUtil.toScaled(radius * 2);
   }
   
-  public long getBoundingDiameterScaled() {
+  public int getBoundingDiameterScaled() {
     return boundingDiameterScaled;
   }
   
-  public long getBoundingRadiusScaled() {
+  public int getBoundingRadiusScaled() {
     return boundingRadiusScaled;
   }
   
@@ -47,19 +47,19 @@ public class UnitSize {
     return boundingRadius;
   }
   
-  public long getScaledHalfHeight() {
+  public int getScaledHalfHeight() {
     return scaledHalfHeight;
   }
   
-  public long getScaledHalfWidth() {
+  public int getScaledHalfWidth() {
     return scaledHalfWidth;
   }
   
-  public long getScaledHeight() {
+  public int getScaledHeight() {
     return scaledHeight;
   }
   
-  public long getScaledWidth() {
+  public int getScaledWidth() {
     return scaledWidth;
   }
   

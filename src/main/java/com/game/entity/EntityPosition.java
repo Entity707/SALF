@@ -1,14 +1,14 @@
 package com.game.entity;
 
 public class EntityPosition {
-  public long x;
-  public long y;
-  public long z;
-  public long lastX;
-  public long lastY;
-  public long lastZ;
-  public long direction;
-  public long lastDirection;
+  public int x;
+  public int y;
+  public int z;
+  public int lastX;
+  public int lastY;
+  public int lastZ;
+  public int direction;
+  public int lastDirection;
   
   public void tick() {
     lastX = x;
@@ -17,7 +17,7 @@ public class EntityPosition {
     lastDirection = direction;
   }
   
-  public EntityPosition(long x, long y, long z, long direction) {
+  public EntityPosition(int x, int y, int z, int direction) {
     this.x = x;
     this.lastX = x;
     this.y = y;

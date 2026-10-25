@@ -3,17 +3,17 @@ package com.game.entity;
 import com.game.utils.NumUtil;
 
 public class Snapshot {
-  public long x;
-  public long y;
-  public long z;
-  public long lastX;
-  public long lastY;
-  public long lastZ;
-  public long direction;
-  public long lastDirection;
+  public int x;
+  public int y;
+  public int z;
+  public int lastX;
+  public int lastY;
+  public int lastZ;
+  public int direction;
+  public int lastDirection;
   public boolean isSelected = false;
-  public long hp;
-  public long lerpY;
+  public int hp;
+  public int lerpY;
   
   public void set(Entity entity) {
     x = entity.entityPosition.x;
@@ -28,11 +28,11 @@ public class Snapshot {
     hp = entity.hp;
   }
   
-  public long getYLerp() {
+  public int getYLerp() {
     return lerpY;
   }
   
   public void setYLerp(float factor) {
-    lerpY = NumUtil.interpolate(y, lastY, factor);
+    lerpY = NumUtil.lerp(y, lastY, factor);
   }
 }

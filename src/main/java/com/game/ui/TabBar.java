@@ -3,6 +3,7 @@ package com.game.ui;
 import com.game.TextAlignment;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+
 import javax.swing.Action;
 
 public class TabBar extends UserInterface{
@@ -56,7 +57,7 @@ public class TabBar extends UserInterface{
     activeIndex = builder.activeIndex;
     selectedIndex = builder.selectedIndex;
     
-    cellWidth = builder.width/StrictMath.max(tabs.size(), 1);
+    cellWidth = builder.width/ StrictMath.max(tabs.size(), 1);
   }
   
   @Override

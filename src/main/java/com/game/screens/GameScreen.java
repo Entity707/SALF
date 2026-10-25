@@ -3,8 +3,6 @@ package com.game.screens;
 import com.game.draw.DrawManager;
 import com.game.entity.Entity;
 import com.game.entity.PlayerColor;
-import com.game.entity.unit.Unit;
-import com.game.entity.unit.vanguard.VanguardMarine;
 import com.game.tile.TileManager;
 import com.game.utils.JsonUtil;
 import com.game.utils.LoggerUtil;
@@ -25,26 +23,26 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
 
-public class GameScreen/* implements Screen*/ {
+public class GameScreen extends Screen/* implements Screen*/ {
   private static final int SHIFT = 22;
   private static int threadCount;
   private static ForkJoinPool pool;
-  private final ObjectArrayList<Entity> visibleEntities = new ObjectArrayList<>(12000);
+//  private final ObjectArrayList<Entity> visibleEntities = new ObjectArrayList<>(12000);
   private final Long2IntMap cellHeads1;
   private final Long2IntMap cellHeads2;
   File map;
   GameState gameState = GameState.RUNNING;
   TileManager tileManager;
-  ObjectArrayList<Entity> entities;
-  ObjectArrayList<Entity> selectedEntities;
+//  ObjectArrayList<Entity> entities;
+//  ObjectArrayList<Entity> selectedEntities;
   //    Rectangle selectedRectangle = null;
   long tickNum;
-  long mapWidth;
-  long mapHeight;
-  long[] hotX;
-  long[] hotY;
-  long[] hotRad;
-  long[] hotNIC;
+  int mapWidth;
+  int mapHeight;
+  int[] hotX;
+  int[] hotY;
+  int[] hotRad;
+  int[] hotNIC;
   volatile boolean isSnapshot1 = true;
   boolean exit = false;
   boolean isLoadingFinished = false;
@@ -72,12 +70,12 @@ public class GameScreen/* implements Screen*/ {
       controlGroups.put(i, new ObjectArrayList<>());
     }
     exit = false;
-    entities = new ObjectArrayList<>(16000);
-    for (int i = 0; i < 10000; i++) {
-      entities.add(new VanguardMarine(NumUtil.FTL((float) (StrictMath.random() * 3860)), NumUtil.FTL((float) StrictMath.random() * 2160), PlayerColor.BLUE));
-    }
+//    entities = new ObjectArrayList<>(16000);
+//    for (int i = 0; i < 10000; i++) {
+//      entities.add(new VanguardMarine(NumUtil.toScaled((float) (StrictMath.random() * 3860)), NumUtil.toScaled((float) StrictMath.random() * 2160), PlayerColor.BLUE));
+//    }
 //        for (int i = 0; i < 15000; i++) {
-//            entities.add(new VanguardMarine(NumUtil.FTL((float) (StrictMath.random() * 7680)), NumUtil.FTL((float) StrictMath.random() * 4320), PlayerColor.BLUE));
+//            entities.add(new VanguardMarine(NumUtil.toScaled((float) (StrictMath.random() * 7680)), NumUtil.toScaled((float) StrictMath.random() * 4320), PlayerColor.BLUE));
 //        }
 //        for (int i = 0; i < 2500; i++) {
 //            entities.add(new VanguardMUV((int) (StrictMath.random() * 7680), (int) (StrictMath.random() * 4320), PlayerColor.RED));
@@ -88,11 +86,11 @@ public class GameScreen/* implements Screen*/ {
 //        for (int i = 0; i < 100; i++) {
 //            entities.add(new VanguardCommandCenter((int) (StrictMath.random() * 7680), (int) (StrictMath.random() * 4320), PlayerColor.RED));
 //        }
-    selectedEntities = new ObjectArrayList<>();
-    selectedEntities.addAll(entities);
-    for (Entity entity : entities) {
-      entity.setIsSelected(true);
-    }
+//    selectedEntities = new ObjectArrayList<>();
+//    selectedEntities.addAll(entities);
+//    for (Entity entity : entities) {
+//      entity.setIsSelected(true);
+//    }
     
     tileManager = new TileManager(map);
     this.map = map;
@@ -100,8 +98,8 @@ public class GameScreen/* implements Screen*/ {
     JsonNode root = objectMapper.readTree(new File(map.getPath() + "/map.json"));
     JsonNode playersData = root.path("playerData");
     JsonNode playerData = playersData.get(playerNum);
-    mapWidth = root.get("width").asLong();
-    mapHeight = root.get("height").asLong();
+    mapWidth = root.get("width").asInt();
+    mapHeight = root.get("height").asInt();
 //        DrawUtil.setGameViewport(gameViewport);
     tickNum = 0;
     ReplayScreen.newReplay(map);
@@ -116,12 +114,12 @@ public class GameScreen/* implements Screen*/ {
       playerColors[i] = PlayerColor.fromValue(playersData.get(i).get("color").asString());
     }
     System.out.println("physics threads: " + threadCount);
-    load();
+    init();
     
     
   }
   
-  private void load() {
+  private void init() {
     loadingScreen = new LoadingScreen(0/*Models.values().length * 5 + Models.getUnitAmount() * 32 + Models.getBuildingAmount() * 2*/);
     Thread loader = new Thread(() -> {
       try {
@@ -153,15 +151,15 @@ public class GameScreen/* implements Screen*/ {
   
   
   private void clearSelected() {
-    for (Entity entity : selectedEntities) {
-      entity.setIsSelected(false);
-    }
-    selectedEntities.clear();
+//    for (Entity entity : selectedEntities) {
+//      entity.setIsSelected(false);
+//    }
+//    selectedEntities.clear();
   }
   
   private void addSelected(Entity entity) {
-    selectedEntities.add(entity);
-    entity.setIsSelected(true);
+//    selectedEntities.add(entity);
+//    entity.setIsSelected(true);
   }
   
   public boolean isExit() {
@@ -172,25 +170,25 @@ public class GameScreen/* implements Screen*/ {
   private void setSpatialGrid() {
     if (isSnapshot1) {
       cellHeads2.clear();
-      for (int i = 0; i < entities.size(); i++) {
-        Entity entity = entities.get(i);
-        long key = (entity.getX() >> 22) << 32 | (entity.getY() >> 22) & 0xFFFFFFFFL;
-        entity.nextInCell2 = cellHeads2.getOrDefault(key, -1);
-        cellHeads2.put(key, i);
-      }
+//      for (int i = 0; i < entities.size(); i++) {
+//        Entity entity = entities.get(i);
+//        long key = (entity.getX() >> 22) << 32 | (entity.getY() >> 22) & 0xFFFFFFFFL;
+//        entity.nextInCell2 = cellHeads2.getOrDefault(key, -1);
+//        cellHeads2.put(key, i);
+//      }
     } else {
       cellHeads1.clear();
-      for (int i = 0; i < entities.size(); i++) {
-        Entity entity = entities.get(i);
-        long key = (entity.getX() >> 22) << 32 | (entity.getY() >> 22) & 0xFFFFFFFFL;
-        entity.nextInCell1 = cellHeads1.getOrDefault(key, -1);
-        cellHeads1.put(key, i);
-      }
+//      for (int i = 0; i < entities.size(); i++) {
+//        Entity entity = entities.get(i);
+//        long key = (entity.getX() >> 22) << 32 | (entity.getY() >> 22) & 0xFFFFFFFFL;
+//        entity.nextInCell1 = cellHeads1.getOrDefault(key, -1);
+//        cellHeads1.put(key, i);
+//      }
     }
     
   }
   
-  private void applyPush(Entity entity, long x, long y) {
+  private void applyPush(Entity entity, int x, int y) {
 //        u.changeX(dx);
 //        u.changeY(dy);
 //    if (entity.getTags().contains(Tags.UNMOVABLE)) return;
@@ -200,43 +198,43 @@ public class GameScreen/* implements Screen*/ {
   }
   
   private void calculatePhysics() {
-    for (int iter = 0; iter < 1; iter++) {//increase if physics acts up
-      long t1 = System.nanoTime();
-      hotX = new long[entities.size()];
-      hotY = new long[entities.size()];
-      hotRad = new long[entities.size()];
-      hotNIC = new long[entities.size()];
-      for (int i = 0; i < entities.size(); i++) {
-        Entity entity = entities.get(i);
-        hotX[i] = entity.getX();
-        hotY[i] = entity.getY();
-        hotRad[i] = entity.getRadiusScaled();
-        if (isSnapshot1) {
-          hotNIC[i] = entity.nextInCell2;
-        } else {
-          hotNIC[i] = entity.nextInCell1;
-        }
-        
-      }
-      long t2 = System.nanoTime();
-      List<CollisionResult> collisions = pool.invoke(new CollisionDetectionTask(0, entities.size(), hotX, hotY, hotRad, hotNIC));
-      long t3 = System.nanoTime();
-      
-      for (CollisionResult res : collisions) {
-        applyPush(res.entity1, res.moveX, res.moveY);
-        applyPush(res.entity2, -res.moveX, -res.moveY);
-      }
-      long t4 = System.nanoTime();
-      if (tickNum % 2 == 0)
-        LoggerUtil.log(PerformanceType.PHYSICS, "set hot:", (t2 - t1) / 1000000d, "detect:", (t3 - t2) / 1000000d, "resolve:", (t4 - t3) / 1000000d, "collisions:", collisions.size());
-//            System.out.println("spatial grid: " + (t2-t1)/1000000d + "detect: " + (t3-t2)/1000000d + "resolve: " + (t4-t3)/1000000d + "collisions amount: " + collisions.size());
-    }
-    for (Entity entity : entities) {
-      if (entity.getX() >= mapWidth) entity.setX(mapWidth - 1);
-      else if (entity.getX() <= 0) entity.setX(1);
-      if (entity.getY() >= mapHeight) entity.setY(mapHeight - 1);
-      else if (entity.getY() <= 0) entity.setY(1);
-    }
+//    for (int iter = 0; iter < 1; iter++) {//increase if physics acts up
+//      long t1 = System.nanoTime();
+//      hotX = new int[entities.size()];
+//      hotY = new int[entities.size()];
+//      hotRad = new int[entities.size()];
+//      hotNIC = new int[entities.size()];
+//      for (int i = 0; i < entities.size(); i++) {
+//        Entity entity = entities.get(i);
+//        hotX[i] = entity.getX();
+//        hotY[i] = entity.getY();
+//        hotRad[i] = entity.getRadiusScaled();
+//        if (isSnapshot1) {
+//          hotNIC[i] = entity.nextInCell2;
+//        } else {
+//          hotNIC[i] = entity.nextInCell1;
+//        }
+//
+//      }
+//      long t2 = System.nanoTime();
+//      List<CollisionResult> collisions = pool.invoke(new CollisionDetectionTask(0, entities.size(), hotX, hotY, hotRad, hotNIC));
+//      long t3 = System.nanoTime();
+//
+//      for (CollisionResult res : collisions) {
+//        applyPush(res.entity1, res.moveX, res.moveY);
+//        applyPush(res.entity2, -res.moveX, -res.moveY);
+//      }
+//      long t4 = System.nanoTime();
+//      if (tickNum % 2 == 0)
+//        LoggerUtil.log(PerformanceType.PHYSICS, "set hot:", (t2 - t1) / 1000000d, "detect:", (t3 - t2) / 1000000d, "resolve:", (t4 - t3) / 1000000d, "collisions:", collisions.size());
+////            System.out.println("spatial grid: " + (t2-t1)/1000000d + "detect: " + (t3-t2)/1000000d + "resolve: " + (t4-t3)/1000000d + "collisions amount: " + collisions.size());
+//    }
+//    for (Entity entity : entities) {
+//      if (entity.getX() >= mapWidth) entity.setX(mapWidth - 1);
+//      else if (entity.getX() <= 0) entity.setX(1);
+//      if (entity.getY() >= mapHeight) entity.setY(mapHeight - 1);
+//      else if (entity.getY() <= 0) entity.setY(1);
+//    }
   }
   
   public void tick() {
@@ -251,8 +249,8 @@ public class GameScreen/* implements Screen*/ {
 //      switch (input.getInputType()) {
 //        case LEFT_CLICK: {
 //          clearSelected();
-//          long clickX = NumUtil.FTL(input.getX());// + gameViewport.getX());
-//          long clickY = NumUtil.FTL(input.getY());// + gameViewport.getY());
+//          long clickX = NumUtil.toScaled(input.getX());// + gameViewport.getX());
+//          long clickY = NumUtil.toScaled(input.getY());// + gameViewport.getY());
 //
 //          long gridX = clickX >> SHIFT;
 //          long gridY = clickY >> SHIFT;
@@ -291,10 +289,10 @@ public class GameScreen/* implements Screen*/ {
 ////                            StrictMath.abs(input.getY() - input.getStartY())
 ////                    );
 ////
-////                    float rectX = NumUtil.FTL(selectedRectangle.getX());// + gameViewport.getX());
-////                    float rectY = NumUtil.FTL(selectedRectangle.getY());// + gameViewport.getY());
-////                    float rectWidth = NumUtil.FTL(selectedRectangle.getWidth());
-////                    float rectHeight = NumUtil.FTL(selectedRectangle.getHeight());
+////                    float rectX = NumUtil.toScaled(selectedRectangle.getX());// + gameViewport.getX());
+////                    float rectY = NumUtil.toScaled(selectedRectangle.getY());// + gameViewport.getY());
+////                    float rectWidth = NumUtil.toScaled(selectedRectangle.getWidth());
+////                    float rectHeight = NumUtil.toScaled(selectedRectangle.getHeight());
 //
 ////                    int startX = (int) ((long) rectX >> SHIFT);
 ////                    int endX = (int) ((long) (rectX + rectWidth) >> SHIFT);
@@ -330,8 +328,8 @@ public class GameScreen/* implements Screen*/ {
 ////                    break;
 //        }
 //        case RIGHT_CLICK:
-//          long commandX = NumUtil.FTL(input.getX());// + NumUtil.FTL(gameViewport.getX());
-//          long commandY = NumUtil.FTL(input.getY());// + NumUtil.FTL(gameViewport.getY());
+//          long commandX = NumUtil.toScaled(input.getX());// + NumUtil.toScaled(gameViewport.getX());
+//          long commandY = NumUtil.toScaled(input.getY());// + NumUtil.toScaled(gameViewport.getY());
 //          for (int i = 0; i < selectedEntities.size(); i++) {
 //            selectedEntities.get(i).addCommand(new Command(InputType.RIGHT_CLICK, commandX, commandY));
 //          }
@@ -530,16 +528,16 @@ public class GameScreen/* implements Screen*/ {
 //    }
     long t3 = System.nanoTime();
 
-    entities.parallelStream().forEach(Entity::tick);
-    setSpatialGrid();
-    calculatePhysics();
-    if (isSnapshot1) {
-      entities.parallelStream().forEach(Entity::setSnapshot2);
-      isSnapshot1 = false;
-    } else {
-      entities.parallelStream().forEach(Entity::setSnapshot1);
-      isSnapshot1 = true;
-    }
+//    entities.parallelStream().forEach(Entity::tick);
+//    setSpatialGrid();
+//    calculatePhysics();
+//    if (isSnapshot1) {
+//      entities.parallelStream().forEach(Entity::setSnapshot2);
+//      isSnapshot1 = false;
+//    } else {
+//      entities.parallelStream().forEach(Entity::setSnapshot1);
+//      isSnapshot1 = true;
+//    }
 
 
 //    if (!InputHandler.MouseDown()) {
@@ -607,15 +605,15 @@ public class GameScreen/* implements Screen*/ {
     }
     boolean isSnapshot1Draw = isSnapshot1;
     
-    for (Entity entity : entities) {
-      if (entity instanceof Unit) {
-        ((Unit) entity).drawTarget();
-      }
-    }
+//    for (Entity entity : entities) {
+//      if (entity instanceof Unit) {
+//        ((Unit) entity).drawTarget();
+//      }
+//    }
     
-    visibleEntities.clear();
-    long viewX = 0;//NumUtil.FTL(gameViewport.getX());
-    long viewY = 0;//NumUtil.FTL(gameViewport.getY());
+//    visibleEntities.clear();
+    long viewX = 0;//NumUtil.toScaled(gameViewport.getX());
+    long viewY = 0;//NumUtil.toScaled(gameViewport.getY());
     long viewWidth = 19200000;
     long viewHeight = 10800000;
     
@@ -624,55 +622,55 @@ public class GameScreen/* implements Screen*/ {
     int minGridY = (int) (viewY >> SHIFT);
     int maxGridY = (int) ((viewY + viewHeight) >> SHIFT);
     
-    for (int gx = minGridX; gx <= maxGridX; gx++) {
-      for (int gy = minGridY; gy <= maxGridY; gy++) {
-        long key = ((long) gx << 32) | (gy & 0xFFFFFFFFL);
-        int currentIndex;
-        if (isSnapshot1Draw) {
-          currentIndex = cellHeads1.get(key);
-          while (currentIndex != -1) {
-            Entity entity = entities.get(currentIndex);
-            visibleEntities.add(entity);
-            currentIndex = entity.nextInCell1;
-          }
-        } else {
-          currentIndex = cellHeads2.get(key);
-          while (currentIndex != -1) {
-            Entity entity = entities.get(currentIndex);
-            visibleEntities.add(entity);
-            
-            currentIndex = entity.nextInCell2;
-          }
-        }
-        
-        
-      }
-    }
+//    for (int gx = minGridX; gx <= maxGridX; gx++) {
+//      for (int gy = minGridY; gy <= maxGridY; gy++) {
+//        long key = ((long) gx << 32) | (gy & 0xFFFFFFFFL);
+//        int currentIndex;
+//        if (isSnapshot1Draw) {
+//          currentIndex = cellHeads1.get(key);
+//          while (currentIndex != -1) {
+//            Entity entity = entities.get(currentIndex);
+//            visibleEntities.add(entity);
+//            currentIndex = entity.nextInCell1;
+//          }
+//        } else {
+//          currentIndex = cellHeads2.get(key);
+//          while (currentIndex != -1) {
+//            Entity entity = entities.get(currentIndex);
+//            visibleEntities.add(entity);
+//
+//            currentIndex = entity.nextInCell2;
+//          }
+//        }
+//
+//
+//      }
+//    }
 //        TODO: make a special y that is set here and then sorted to get rid of concurreny issues, and interpolate this y value too;
-    for (Entity entity : visibleEntities) {
-      entity.getSnapshot(isSnapshot1Draw).setYLerp(DrawManager.getFactor());
-    }
-    if (isSnapshot1Draw) {
-      visibleEntities.sort(Entity.Y_SNAP_1_COMPARATOR);
-    } else {
-      visibleEntities.sort(Entity.Y_SNAP_2_COMPARATOR);
-    }
-
-//        System.out.println(visibleEntities.size());
-    for (Entity visibleEntity : visibleEntities) {
-      if (visibleEntity.isSelected()) {
-        visibleEntity.drawSelectedRing(isSnapshot1Draw);
-      }
-    }
-    DrawManager.startRender3D();
-    for (Entity visibleEntity : visibleEntities) {
-      
-      visibleEntity.draw(isSnapshot1Draw);
-    }
-    DrawManager.startRender2D();
-    for (Entity visibleEntity : visibleEntities) {
-      visibleEntity.drawHeathBar(isSnapshot1Draw);
-    }
+//    for (Entity entity : visibleEntities) {
+//      entity.getSnapshot(isSnapshot1Draw).setYLerp(DrawManager.getFactor());
+//    }
+//    if (isSnapshot1Draw) {
+//      visibleEntities.sort(Entity.Y_SNAP_1_COMPARATOR);
+//    } else {
+//      visibleEntities.sort(Entity.Y_SNAP_2_COMPARATOR);
+//    }
+//
+////        System.out.println(visibleEntities.size());
+//    for (Entity visibleEntity : visibleEntities) {
+//      if (visibleEntity.isSelected()) {
+//        visibleEntity.drawSelectedRing(isSnapshot1Draw);
+//      }
+//    }
+//    DrawManager.startRender3D();
+//    for (Entity visibleEntity : visibleEntities) {
+//
+//      visibleEntity.draw(isSnapshot1Draw);
+//    }
+//    DrawManager.startRender2D();
+//    for (Entity visibleEntity : visibleEntities) {
+//      visibleEntity.drawHeathBar(isSnapshot1Draw);
+//    }
 
 //        if (selectedRectangle != null) {
 //            DrawUtil.fillRect(selectedRectangle, 0x00FF0040);
@@ -702,9 +700,9 @@ public class GameScreen/* implements Screen*/ {
   private class CollisionDetectionTask extends RecursiveTask<List<CollisionResult>> {
     private static final int THRESHOLD = 512;
     private final int start, end;
-    private final long[] xArr, yArr, rArr, nArr;
+    private final int[] xArr, yArr, rArr, nArr;
     
-    CollisionDetectionTask(int start, int end, long[] xArr, long[] yArr, long[] rArr, long[] nArr) {
+    CollisionDetectionTask(int start, int end, int[] xArr, int[] yArr, int[] rArr, int[] nArr) {
       this.start = start;
       this.end = end;
       this.xArr = xArr;
@@ -732,16 +730,16 @@ public class GameScreen/* implements Screen*/ {
     private List<CollisionResult> detectSequentially() {
       List<CollisionResult> results = new ArrayList<>();
       for (int i = start; i < end; i++) {
-        long cx1 = xArr[i] + rArr[i];
-        long cy1 = yArr[i] + rArr[i];
-        long r1 = rArr[i];
+        int cx1 = xArr[i] + rArr[i];
+        int cy1 = yArr[i] + rArr[i];
+        int r1 = rArr[i];
         
-        long gx = xArr[i] >> SHIFT;
-        long gy = yArr[i] >> SHIFT;
+        int gx = xArr[i] >> SHIFT;
+        int gy = yArr[i] >> SHIFT;
         
-        for (long nx = gx - 1; nx <= gx + 1; nx++) {
-          for (long ny = gy - 1; ny <= gy + 1; ny++) {
-            long key = (nx << 32) | (ny & 0xFFFFFFFFL);
+        for (int nx = gx - 1; nx <= gx + 1; nx++) {
+          for (int ny = gy - 1; ny <= gy + 1; ny++) {
+            int key = nx | ny;
             int currentIndex;
             if (isSnapshot1) {
               currentIndex = cellHeads2.get(key);
@@ -751,27 +749,27 @@ public class GameScreen/* implements Screen*/ {
             
             while (currentIndex != -1) {
               if (i < currentIndex) {
-                long cx2 = xArr[currentIndex] + rArr[currentIndex];
-                long cy2 = yArr[currentIndex] + rArr[currentIndex];
-                long rSum = r1 + rArr[currentIndex];
-                long dx = cx2 - cx1;
-                long dy = cy2 - cy1;
+                int cx2 = xArr[currentIndex] + rArr[currentIndex];
+                int cy2 = yArr[currentIndex] + rArr[currentIndex];
+                int rSum = r1 + rArr[currentIndex];
+                int dx = cx2 - cx1;
+                int dy = cy2 - cy1;
                 
                 if (StrictMath.abs(dx) < rSum && StrictMath.abs(dy) < rSum) {
-                  long distSq = dx * dx + dy * dy;
-                  long rSumSq = rSum * rSum;
+                  int distSq = dx * dx + dy * dy;
+                  int rSumSq = rSum * rSum;
                   
                   if (distSq < rSumSq && distSq > 0) {
-                    long distance = NumUtil.sqrtFastScaled(distSq);
+                    int distance = NumUtil.sqrt(distSq);
                     if (distance == 0) distance = 10000;
                     
-                    long overlap = rSum - distance;
-                    long pushAmount = (long) (overlap * 0.05);
+                    int overlap = rSum - distance;
+                    int pushAmount = (int) (overlap * 0.05);
                     
-                    long moveX = (dx * pushAmount) / distance;
-                    long moveY = (dy * pushAmount) / distance;
+                    int moveX = (dx * pushAmount) / distance;
+                    int moveY = (dy * pushAmount) / distance;
 //                                        System.out.println(moveX + ":" + moveY);
-                    results.add(new CollisionResult(entities.get(i), entities.get(currentIndex), moveX, moveY));
+//                    results.add(new CollisionResult(entities.get(i), entities.get(currentIndex), moveX, moveY));
                   }
                 }
               }

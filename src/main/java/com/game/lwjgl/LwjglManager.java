@@ -20,7 +20,7 @@ public class LwjglManager {
   }
   
   LwjglManager(int renderThreads) {
-    this.renderThreads = Math.max(1, renderThreads);
+    this.renderThreads = StrictMath.max(1, renderThreads);
     reload();
   }
   

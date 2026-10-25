@@ -130,7 +130,7 @@ class VulkanRender {
         lwjglData.pipelineLayout2D, 0, stack.longs(lwjglData.descriptorSet), null);
     
     float w = lwjglData.swapchainWidth, h = lwjglData.swapchainHeight;
-    float scale = Math.min(w / 1920f, h / 1080f);
+    float scale = StrictMath.min(w / 1920f, h / 1080f);
     ByteBuffer pc = stack.calloc(24);
     pc.putFloat(0, w).putFloat(4, h);
     pc.putFloat(8, (w - 1920f * scale) * 0.5f).putFloat(12, (h - 1080f * scale) * 0.5f);

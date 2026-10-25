@@ -3,7 +3,7 @@ package com.game.screens;
 import com.game.draw.DrawManager;
 import com.game.settings.SettingsManager;
 
-public class SettingsScreen extends GameWindow/* implements Screen*/ {
+public class SettingsScreen extends Screen/* implements Screen*/ {
   private boolean isEditing = false;
   //    private Buttons currentSection = Buttons.GRAPHICS;
 //    private GraphicsButtons currentGraphicsSetting = GraphicsButtons.GRAPHICS_QUALITY;
@@ -14,24 +14,11 @@ public class SettingsScreen extends GameWindow/* implements Screen*/ {
     this.settingsManager = settingsManager;
   }
   
-  public SettingsScreen(SettingsScreen settingsScreen) {
-    isEditing = settingsScreen.isEditing;
-//        currentSection = settingsScreen.currentSection;
-//        currentGraphicsSetting = settingsScreen.currentGraphicsSetting;
-//        currentAudioSetting = settingsScreen.currentAudioSetting;
-    exit = settingsScreen.exit;
-    settingsManager = settingsScreen.settingsManager;
-  }
-  
   public void resetSelections() {
     isEditing = false;
 //        currentSection = Buttons.GRAPHICS;
 //        currentGraphicsSetting = GraphicsButtons.GRAPHICS_QUALITY;
 //        currentAudioSetting = AudioButtons.MASTER_VOLUME;
-  }
-  
-  public GameWindow copy() {
-    return new SettingsScreen(this);
   }
   
   private boolean isInt(String string) {

@@ -15,5 +15,5 @@ public abstract class Building extends Entity {
     entityPosition.tick();
   }
   
-  protected long timer;
+  protected int timer;
 }

@@ -8,15 +8,15 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 public class EntityComponentSnapshot {
-  LongArrayList x;
-  LongArrayList lastX;
-  LongArrayList y;
-  LongArrayList lastY;
-  LongArrayList z;//TODO: implement these
-  LongArrayList lastZ;
-  LongArrayList direction;
-  LongArrayList lastDirection;
-  LongArrayList hp;
+  IntArrayList x;
+  IntArrayList lastX;
+  IntArrayList y;
+  IntArrayList lastY;
+  IntArrayList z;//TODO: implement these
+  IntArrayList lastZ;
+  IntArrayList direction;
+  IntArrayList lastDirection;
+  IntArrayList hp;
   IntArrayList ticksUntilAction;
   BooleanArrayList isSelected;
   IntArrayList selected;
@@ -55,13 +55,13 @@ public class EntityComponentSnapshot {
   }
   
   EntityComponentSnapshot(int size){
-    x = new LongArrayList(size);
-    lastX = new LongArrayList(size);
-    y = new LongArrayList(size);
-    lastY = new LongArrayList(size);
-    direction = new LongArrayList(size);
-    lastDirection = new LongArrayList(size);
-    hp = new LongArrayList(size);
+    x = new IntArrayList(size);
+    lastX = new IntArrayList(size);
+    y = new IntArrayList(size);
+    lastY = new IntArrayList(size);
+    direction = new IntArrayList(size);
+    lastDirection = new IntArrayList(size);
+    hp = new IntArrayList(size);
     ticksUntilAction = new IntArrayList(size);
     isSelected = new BooleanArrayList(size);
     selected = new IntArrayList(size);
@@ -154,19 +154,19 @@ public class EntityComponentSnapshot {
   }
   
   
-  void setX(long x, int id){
+  void setX(int x, int id){
     recordAction(id, x, EntityComponentAction.setX);
-    lastX.set(id, this.x.getLong(id));
+    lastX.set(id, this.x.getInt(id));
     this.x.set(id, x);
   }
-  void setY(long y, int id){
+  void setY(int y, int id){
     recordAction(id, y, EntityComponentAction.setY);
-    lastY.set(id, this.y.getLong(id));
+    lastY.set(id, this.y.getInt(id));
     this.y.set(id, y);
   }
-  void setDirection(long direction, int id){
+  void setDirection(int direction, int id){
     recordAction(id, direction, EntityComponentAction.setDirection);
-    lastDirection.set(id, this.direction.getLong(id));
+    lastDirection.set(id, this.direction.getInt(id));
     this.direction.set(id, direction);
   }
   void select(int id){
@@ -192,13 +192,13 @@ public class EntityComponentSnapshot {
     
     if (generation.getInt(id) != expectedGeneration) return;
     recordAction(id, change, expectedGeneration, EntityComponentAction.changeHp);
-    hp.set(id, hp.getLong(id) + change);
-    if (hp.getLong(id) <= 0)kill(id);
+    hp.set(id, hp.getInt(id) + change);
+    if (hp.getInt(id) <= 0)kill(id);
   }
   void makeUnit(Entity unit){
     //TODO: change unit logic to read from json and make units first
   }
-  long allocateId() {
+  int allocateId() {
     int id = inactiveId.iterator().nextInt();
     inactiveId.remove(id);
     activeId.add(id);
@@ -208,8 +208,8 @@ public class EntityComponentSnapshot {
     abilities.set(id, 0L);
     effects.set(id, 0L);
     
-    long gen = generation.getInt(id);
-    return (gen << 32) | (id & 0xFFFFFFFFL);
+    int gen = generation.getInt(id);
+    return (gen) | (id);
   }
   
   void setTag(int id, long tag){

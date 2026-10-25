@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ReplayScreen {
+public class ReplayScreen extends Screen {
   private static File file;
   private static ExecutorService executor;
   private static PrintWriter writer;
@@ -99,5 +99,15 @@ public class ReplayScreen {
     executor.shutdown();
     writer.flush();
     writer.close();
+  }
+  
+  @Override
+  public void draw() {
+  
+  }
+  
+  @Override
+  public void tick() {
+  
   }
 }

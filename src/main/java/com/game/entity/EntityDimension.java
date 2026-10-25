@@ -3,12 +3,12 @@ package com.game.entity;
 import com.game.utils.NumUtil;
 
 public class EntityDimension {
-  public final long widthScaled;
-  public final long heightScaled;
-  public final long halfWidthScaled;
-  public final long halfHeightScaled;
-  public final long radiusScaled;
-  public final long diameterScaled;
+  public final int widthScaled;
+  public final int heightScaled;
+  public final int halfWidthScaled;
+  public final int halfHeightScaled;
+  public final int radiusScaled;
+  public final int diameterScaled;
   public final float width;
   public final float height;
   public final float halfWidth;
@@ -17,12 +17,12 @@ public class EntityDimension {
   public final float diameter;
   
   public EntityDimension(float width, float height, float radius) {
-    widthScaled = NumUtil.FTL(width);
-    heightScaled = NumUtil.FTL(height);
-    halfWidthScaled = NumUtil.FTL(width / 2);
-    halfHeightScaled = NumUtil.FTL(height / 2);
-    radiusScaled = NumUtil.FTL(radius);
-    diameterScaled = NumUtil.FTL(radius * 2);
+    widthScaled = NumUtil.toScaled(width);
+    heightScaled = NumUtil.toScaled(height);
+    halfWidthScaled = NumUtil.toScaled(width / 2);
+    halfHeightScaled = NumUtil.toScaled(height / 2);
+    radiusScaled = NumUtil.toScaled(radius);
+    diameterScaled = NumUtil.toScaled(radius * 2);
     this.width = width;
     this.height = height;
     halfWidth = width / 2;

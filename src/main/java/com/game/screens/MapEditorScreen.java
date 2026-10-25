@@ -1,7 +1,8 @@
 package com.game.screens;
 
-import com.game.utils.LoggerUtil;
 import com.game.input.Keys;
+import com.game.utils.LoggerUtil;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-public class MapEditorScreen extends GameWindow/* implements Screen */ {
+public class MapEditorScreen extends Screen/* implements Screen */ {
   private String directory;
   private boolean isRenaming;
   private String newName;
@@ -49,17 +50,6 @@ public class MapEditorScreen extends GameWindow/* implements Screen */ {
     exit = mapEditorScreen.exit;
   }
   
-  public boolean isExit() {
-    if (exit) {
-      exit = false;
-      return true;
-    }
-    return false;
-  }
-  
-  public GameWindow copy() {
-    return new MapEditorScreen(this);
-  }
   
   private void saveMap() {
   

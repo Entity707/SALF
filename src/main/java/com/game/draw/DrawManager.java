@@ -1,13 +1,13 @@
 package com.game.draw;
 
+import com.game.Fonts;
 import com.game.Init;
+import com.game.TextAlignment;
 import com.game.screens.LoadingScreen;
 import com.game.utils.ModelLoaderUtil;
-import com.game.utils.NumUtil;
-import com.game.Fonts;
-import com.game.TextAlignment;
 
-import static com.game.utils.NumUtil.LTF;
+import static com.game.utils.NumUtil.toScaled;
+
 
 @Init(stage = 1)
 public class DrawManager {
@@ -111,7 +111,7 @@ public class DrawManager {
 //        float targetX = 100f;
 //        float targetZ = 100f;
 //        float height = 50f;
-//        float distanceBack = height / (float) Math.tan(Math.toRadians(56));
+//        float distanceBack = height / (float) StrictMath.tan(Math.toRadians(56));
 //        gameCamera.position.set(targetX, height, targetZ + distanceBack);
 //        gameCamera.lookAt(targetX, 0f, targetZ);
 //        gameCamera.up.set(0, 1, 0);
@@ -267,7 +267,7 @@ public class DrawManager {
    */
   public static void fillRectScaled(long xScaled, long yScaled, long widthScaled, long heightScaled, int color) {
     setColor(color);
-//        shapeDrawer.filledRectangle(LTF(xScaled), LTF(yScaled), LTF(widthScaled) * scale, LTF(heightScaled) * scale);
+//        shapeDrawer.filledRectangle(toScaled(xScaled), toScaled(yScaled), toScaled(widthScaled) * scale, toScaled(heightScaled) * scale);
   }
   
   /**
@@ -275,7 +275,7 @@ public class DrawManager {
    */
   public static void strokeRectScaled(long xScaled, long yScaled, long widthScaled, long heightScaled, int color, float strokeWidth) {
     setColor(color);
-//        shapeDrawer.rectangle(LTF(xScaled), LTF(yScaled), LTF(widthScaled) * scale, LTF(heightScaled) * scale, strokeWidth*scale);
+//        shapeDrawer.rectangle(toScaled(xScaled), toScaled(yScaled), toScaled(widthScaled) * scale, toScaled(heightScaled) * scale, strokeWidth*scale);
   }
   
   /**
@@ -283,7 +283,7 @@ public class DrawManager {
    */
   public static void fillRoundedRectScaled(long xScaled, long yScaled, long widthScaled, long heightScaled, float arc, int color) {
 //        setColor(color);
-//        shapeDrawer.fillRoundRect(LTF(xScaled), LTF(yScaled), LTF(widthScaled) * scale, LTF(heightScaled) * scale, arc * scale, arc * scale);
+//        shapeDrawer.fillRoundRect(toScaled(xScaled), toScaled(yScaled), toScaled(widthScaled) * scale, toScaled(heightScaled) * scale, arc * scale, arc * scale);
   }
   
   /**
@@ -291,7 +291,7 @@ public class DrawManager {
    */
   public static void strokeRoundedRectScaled(long xScaled, long yScaled, long widthScaled, long heightScaled, float arc, int color, float strokeWidth) {
 //        setColor(color);
-//        shapeDrawer.fillRoundRect(LTF(xScaled), LTF(yScaled), LTF(widthScaled) * scale, LTF(heightScaled) * scale, arc * scale, arc * scale);
+//        shapeDrawer.fillRoundRect(toScaled(xScaled), toScaled(yScaled), toScaled(widthScaled) * scale, toScaled(heightScaled) * scale, arc * scale, arc * scale);
   }
   
   /**
@@ -299,7 +299,7 @@ public class DrawManager {
    */
   public static void fillCircleScaled(long xScaled, long yScaled, long radiusScaled, int color) {
     setColor(color);
-//        shapeDrawer.filledCircle(LTF(xScaled), LTF(yScaled), LTF(radiusScaled) * 2 * scale);
+//        shapeDrawer.filledCircle(toScaled(xScaled), toScaled(yScaled), toScaled(radiusScaled) * 2 * scale);
   }
   
   /**
@@ -307,7 +307,7 @@ public class DrawManager {
    */
   public static void strokeCircleScaled(long xScaled, long yScaled, long radiusScaled, int color, float strokeWidth) {
     setColor(color);
-//        shapeDrawer.circle(LTF(xScaled), LTF(yScaled), LTF(radiusScaled) * 2 * scale, strokeWidth*scale);
+//        shapeDrawer.circle(toScaled(xScaled), toScaled(yScaled), toScaled(radiusScaled) * 2 * scale, strokeWidth*scale);
   }
   
   /**
@@ -315,7 +315,7 @@ public class DrawManager {
    */
   public static void fillOvalScaled(long xScaled, long yScaled, long widthScaled, long heightScaled, int color) {
     setColor(color);
-//        shapeDrawer.filledEllipse(LTF(xScaled), LTF(yScaled), LTF(widthScaled) * scale, LTF(heightScaled) * scale);
+//        shapeDrawer.filledEllipse(toScaled(xScaled), toScaled(yScaled), toScaled(widthScaled) * scale, toScaled(heightScaled) * scale);
   }
   
   /**
@@ -323,7 +323,7 @@ public class DrawManager {
    */
   public static void strokeOvalScaled(long xScaled, long yScaled, long widthScaled, long heightScaled, int color, float strokeWidth) {
     setColor(color);
-//        shapeDrawer.ellipse(LTF(xScaled), LTF(yScaled), LTF(widthScaled) * scale, LTF(heightScaled) * scale, 0, strokeWidth*scale);
+//        shapeDrawer.ellipse(toScaled(xScaled), toScaled(yScaled), toScaled(widthScaled) * scale, toScaled(heightScaled) * scale, 0, strokeWidth*scale);
   }
   
   /**
@@ -331,7 +331,7 @@ public class DrawManager {
    */
   public static void fillLineScaled(long startXScaled, long startYScaled, long endXScaled, long endYScaled, int color, float thickness) {
     setColor(color);
-//        shapeDrawer.line(LTF(startXScaled), LTF(startYScaled), LTF(endXScaled), LTF(endYScaled));
+//        shapeDrawer.line(toScaled(startXScaled), toScaled(startYScaled), toScaled(endXScaled), toScaled(endYScaled));
   }
   
   /**
@@ -340,15 +340,15 @@ public class DrawManager {
   public static void fillLineDottedScaled(long startXScaled, long startYScaled, long endXScaled, long endYScaled, int color, float thickness, float dotLength, float spaceLength) {
     setColor(color);
     
-    float startX = LTF(startXScaled);
-    float startY = LTF(startYScaled);
-    float endX = LTF(endXScaled);
-    float endY = LTF(endYScaled);
+    float startX = toScaled(startXScaled);
+    float startY = toScaled(startYScaled);
+    float endX = toScaled(endXScaled);
+    float endY = toScaled(endYScaled);
     
     float dx = endX - startX;
     float dy = endY - startY;
     
-    float totalLength = (float) Math.sqrt(dx * dx + dy * dy);
+    float totalLength = (float) StrictMath.sqrt(dx * dx + dy * dy);
     if (totalLength == 0) return;
     
     
@@ -378,11 +378,11 @@ public class DrawManager {
    * draws a filled text, scaled inputs
    */
   public static void fillTextScaled(String text, long xScaled, long yScaled, Fonts font, float size/*, TextAlignment alignment*/) {
-    int finalSize = Math.round(size * scale);
+    int finalSize = StrictMath.round(size * scale);
 //        BitmapFont gdxFont = font.getFont(finalSize);
     
-    float targetX = LTF(xScaled);
-    float targetY = LTF(yScaled);
+    float targetX = toScaled(xScaled);
+    float targetY = toScaled(yScaled);
 
 //        GlyphLayout layout = new GlyphLayout(gdxFont, text);
 //        int vAlign = alignment.getVerticalAlign();
@@ -400,25 +400,25 @@ public class DrawManager {
    * draws a image, scaled inputs
    */
   public static void fillImageScaled(/*Image image, */long xScaled, long yScaled, long widthScaled, long heightScaled) {
-//        gc.drawImage(image, LTF(xScaled), LTF(yScaled), (LTF(widthScaled) * scale), (LTF(heightScaled) * scale));
+//        gc.drawImage(image, toScaled(xScaled), toScaled(yScaled), (toScaled(widthScaled) * scale), (toScaled(heightScaled) * scale));
   }
   
   /**
    * draws a model image, scaled inputs
    */
   public static void fillModelImageScaled(/*ModelInstance model, */long xScaled, long yScaled, long directionScaled) {
-//        WritableImage model = playersModelMap.get(color).get(model)[(int) (StrictMath.floorMod((int) (LTF(directionScaled) + 11.25), 360) / 22.5)];
-//        gc.drawImage(model, LTF(xScaled - 128 + model.getHalfWidth()), LTF(yScaled - 128 + model.getHalfHeight()), 256 * scale, 256 * scale);
+//        WritableImage model = playersModelMap.get(color).get(model)[(int) (StrictMath.floorMod((int) (toScaled(directionScaled) + 11.25), 360) / 22.5)];
+//        gc.drawImage(model, toScaled(xScaled - 128 + model.getHalfWidth()), toScaled(yScaled - 128 + model.getHalfHeight()), 256 * scale, 256 * scale);
   }
   
   /**
    * draws a model, scaled inputs
    */
   public static void fillModelScaled(/*ModelInstance model, */long xScaled, long yScaled, long zScaled, long directionScaled) {
-//        model.transform.setToTranslation(LTF(xScaled), LTF(yScaled), LTF(zScaled));
-//        model.transform.setToRotation(Vector3.Y, LTF(directionScaled));
+//        model.transform.setToTranslation(toScaled(xScaled), toScaled(yScaled), toScaled(zScaled));
+//        model.transform.setToRotation(Vector3.Y, toScaled(directionScaled));
 //        batch3D.render(model);
-    // drawImage(model, LTF(xScaled + model.getHalfWidth()) - model.getWidth() / 2, LTF(yScaled + model.getHalfHeight()) - model.getHeight() / 2);
+    // drawImage(model, toScaled(xScaled + model.getHalfWidth()) - model.getWidth() / 2, toScaled(yScaled + model.getHalfHeight()) - model.getHeight() / 2);
   }
   
   
@@ -519,7 +519,7 @@ public class DrawManager {
     float dx = endX - startX;
     float dy = endY - startY;
     
-    float totalLength = (float) Math.sqrt(dx * dx + dy * dy);
+    float totalLength = (float) StrictMath.sqrt(dx * dx + dy * dy);
     if (totalLength == 0) return;
     
     
@@ -550,7 +550,7 @@ public class DrawManager {
    */
   public static void fillText(String text, float x, float y, Fonts font, float size/*, TextAlignment alignment*/, int color) {
     setColor(color);
-    int finalSize = Math.round(size * scale);
+    int finalSize = StrictMath.round(size * scale);
 //        BitmapFont gdxFont = font.getFont(finalSize);
 
 
@@ -587,14 +587,14 @@ public class DrawManager {
    * shorthand for linear iterpolate, scaled inputs
    */
   private static long lerp(long current, long last) {
-    return NumUtil.interpolate(current, last, factor);
+    return 0/*NumUtil.lerp(current, last, factor)*/;
   }
   
   /**
    * shorthand for linear iterpolate
    */
   private static float lerp(float current, float last) {
-    return NumUtil.interpolate(current, last, factor);
+    return 0/*NumUtil.lerp(current, last, factor)*/;
   }
   
   public static class Lerp {

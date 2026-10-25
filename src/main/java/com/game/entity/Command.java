@@ -4,8 +4,8 @@ package com.game.entity;
 import com.game.input.InputType;
 
 public class Command {
-  long x;
-  long y;
+  int x;
+  int y;
   String button;
   InputType inputType;
   
@@ -16,7 +16,7 @@ public class Command {
     y = 0;
   }
   
-  public Command(InputType inputType, long x, long y) {
+  public Command(InputType inputType, int x, int y) {
     this.button = "";
     this.x = x;
     this.y = y;
@@ -27,11 +27,11 @@ public class Command {
     return button;
   }
   
-  public long getX() {
+  public int getX() {
     return x;
   }
   
-  public long getY() {
+  public int getY() {
     return y;
   }
   

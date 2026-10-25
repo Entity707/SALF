@@ -66,8 +66,8 @@ class VulkanSwapchain {
         extent.set(capabilities.currentExtent());
       } else {
         extent.set(
-            Math.clamp(lwjglData.windowWidth, capabilities.minImageExtent().width(), capabilities.maxImageExtent().width()),
-            Math.clamp(lwjglData.windowHeight, capabilities.minImageExtent().height(), capabilities.maxImageExtent().height())
+            StrictMath.clamp(lwjglData.windowWidth, capabilities.minImageExtent().width(), capabilities.maxImageExtent().width()),
+            StrictMath.clamp(lwjglData.windowHeight, capabilities.minImageExtent().height(), capabilities.maxImageExtent().height())
         );
       }
       lwjglData.swapchainWidth = extent.width();

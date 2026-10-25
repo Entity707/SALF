@@ -9,6 +9,7 @@ import com.game.entity.PlayerColor;
 import com.game.input.InputType;
 import com.game.utils.NumUtil;
 
+
 import java.util.ArrayList;
 
 public abstract class Unit extends Entity {
@@ -18,12 +19,12 @@ public abstract class Unit extends Entity {
   
   abstract protected UnitStats getUnitStats();
   
-  protected long ticksUntilAttack;
+  protected int ticksUntilAttack;
   
   protected UnitState unitState;
-  protected long targetX;
-  protected long targetY;
-  protected long targetDirection;
+  protected int targetX;
+  protected int targetY;
+  protected int targetDirection;
   
   public void setFormationIndex(int formationIndex) {
     this.formationIndex = formationIndex;
@@ -47,11 +48,11 @@ public abstract class Unit extends Entity {
   }
   
   
-  public long getTargetX() {
+  public int getTargetX() {
     return targetX;
   }
   
-  public long getTargetY() {
+  public int getTargetY() {
     return targetY;
   }
   
@@ -81,10 +82,10 @@ public abstract class Unit extends Entity {
           unitState = UnitState.MOVING;
           
           int ring = (int) StrictMath.sqrt(formationIndex);
-          long angle = (long) ((formationIndex * 137.507) * NumUtil.SCALER) % NumUtil.FTL(360);
-          long spreadRadius = getEntityDimension().radiusScaled * ring;
-          long offsetX = (long) (NumUtil.cos(angle) * spreadRadius);
-          long offsetY = (long) (NumUtil.sin(angle) * spreadRadius);
+          int angle = (int) (NumUtil.toScaled(formationIndex * 137.507)) % NumUtil.toScaled(360);
+          int spreadRadius = getEntityDimension().radiusScaled * ring;
+          int offsetX = (int) (NumUtil.cos(angle) * spreadRadius);
+          int offsetY = (int) (NumUtil.sin(angle) * spreadRadius);
           
           targetX = command.getX() - getEntityDimension().halfWidthScaled + offsetX;
           targetY = command.getY() - getEntityDimension().halfWidthScaled + offsetY;
@@ -96,13 +97,13 @@ public abstract class Unit extends Entity {
     
     switch (unitState) {
       case MOVING:
-        long x = entityPosition.x;
-        long y = entityPosition.y;
-        long direction = entityPosition.direction;
+        int x = entityPosition.x;
+        int y = entityPosition.y;
+        int direction = entityPosition.direction;
         targetDirection = NumUtil.atan2(targetY - y, targetX - x);
-        long delta = targetDirection - direction;
-        long scaled180 = NumUtil.FTL(180);
-        long scaled360 = NumUtil.FTL(360);
+        int delta = targetDirection - direction;
+        int scaled180 = NumUtil.toScaled(180);
+        int scaled360 = NumUtil.toScaled(360);
         while (delta <= -scaled180) delta += scaled360;
         while (delta > scaled180) delta -= scaled360;
 //                System.out.println(delta);
@@ -115,15 +116,15 @@ public abstract class Unit extends Entity {
           if (direction > scaled180) entityPosition.direction -= scaled360;
         }
         if (direction == targetDirection) {
-          long xChange = (long) (getUnitStats().speed() * NumUtil.cos(direction));
-          long yChange = (long) (getUnitStats().speed() * NumUtil.sin(direction));
+          int xChange = (int) (getUnitStats().speed() * NumUtil.cos(direction));
+          int yChange = (int) (getUnitStats().speed() * NumUtil.sin(direction));
           if (targetX > x ? x + xChange >= targetX : x + xChange <= targetX) entityPosition.x = targetX;
           else entityPosition.x += xChange;
           if (targetY > y ? y + yChange >= targetY : y + yChange <= targetY) entityPosition.y = targetY;
           else entityPosition.y += yChange;
-          long dx = x - targetX;
-          long dy = y - targetY;
-          long scaledHalfWidth = getEntityDimension().halfWidthScaled;
+          int dx = x - targetX;
+          int dy = y - targetY;
+          int scaledHalfWidth = getEntityDimension().halfWidthScaled;
           if ((dx * dx) + (dy * dy) <= (scaledHalfWidth * scaledHalfWidth)) {
             unitState = UnitState.IDLE;
             removeCommand();

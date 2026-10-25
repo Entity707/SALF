@@ -28,7 +28,7 @@ public abstract class Entity {
   
   
   protected boolean isSelected = false;
-  protected long hp;
+  protected int hp;
   
   protected Snapshot snapshot1;
   protected Snapshot snapshot2;
@@ -106,11 +106,11 @@ public abstract class Entity {
   
   public void drawSelectedRing(boolean isSnapshot1) {
     if (isSnapshot1) {
-      DrawManager.Game.fillCircle(NumUtil.LTF(snapshot1.x), NumUtil.LTF(snapshot1.lastX), NumUtil.LTF(snapshot1.y), NumUtil.LTF(snapshot1.lastY), getEntityDimension().radius, 0x00FF0067);
-//            DrawUtil.Game.fillCircle(NumUtil.LTF(snapshot1.x), NumUtil.LTF(snapshot1.lastX), NumUtil.LTF(snapshot1.y), NumUtil.LTF(snapshot1.lastY), 1, 0xFF0000FF);
+      DrawManager.Game.fillCircle(NumUtil.toUnscaledFloat(snapshot1.x), NumUtil.toUnscaledFloat(snapshot1.lastX), NumUtil.toUnscaledFloat(snapshot1.y), NumUtil.toUnscaledFloat(snapshot1.lastY), getEntityDimension().radius, 0x00FF0067);
+//            DrawUtil.Game.fillCircle(NumUtil.toUnscaledFloat(snapshot1.x), NumUtil.toUnscaledFloat(snapshot1.lastX), NumUtil.toUnscaledFloat(snapshot1.y), NumUtil.toUnscaledFloat(snapshot1.lastY), 1, 0xFF0000FF);
     } else {
-      DrawManager.Game.fillCircle(NumUtil.LTF(snapshot2.x), NumUtil.LTF(snapshot2.lastX), NumUtil.LTF(snapshot2.y), NumUtil.LTF(snapshot2.lastY), getEntityDimension().radius, 0x00FF0067);
-//            DrawUtil.Game.fillCircle(NumUtil.LTF(snapshot2.x), NumUtil.LTF(snapshot2.lastX), NumUtil.LTF(snapshot2.y), NumUtil.LTF(snapshot2.lastY), 1, 0xFF0000FF);
+      DrawManager.Game.fillCircle(NumUtil.toUnscaledFloat(snapshot2.x), NumUtil.toUnscaledFloat(snapshot2.lastX), NumUtil.toUnscaledFloat(snapshot2.y), NumUtil.toUnscaledFloat(snapshot2.lastY), getEntityDimension().radius, 0x00FF0067);
+//            DrawUtil.Game.fillCircle(NumUtil.toUnscaledFloat(snapshot2.x), NumUtil.toUnscaledFloat(snapshot2.lastX), NumUtil.toUnscaledFloat(snapshot2.y), NumUtil.toUnscaledFloat(snapshot2.lastY), 1, 0xFF0000FF);
     }
   }
   
@@ -119,8 +119,8 @@ public abstract class Entity {
 //      return;
 //    }
     
-    long maxHp = getEntityStats().maxHp();
-    float scale = getEntityDimension().diameter / (NumUtil.LTF(maxHp) / 100f); //the width of each tick
+    int maxHp = getEntityStats().maxHp();
+    float scale = getEntityDimension().diameter / (NumUtil.toUnscaledFloat(maxHp) / 100f); //the width of each tick
 //        System.out.println(getCollisionDiameter() + ":" + getMaxHp() + ":" + scale + ":" + ((float)getCollisionDiameter())/((float)getMaxHp()));
     
     int color;
@@ -141,17 +141,17 @@ public abstract class Entity {
     float tempLastY;
     float tempHp;
     if (isSnapshot1) {
-      tempX = NumUtil.LTF(snapshot1.x);
-      tempY = NumUtil.LTF(snapshot1.y);
-      tempLastX = NumUtil.LTF(snapshot1.lastX);
-      tempLastY = NumUtil.LTF(snapshot1.lastY);
-      tempHp = NumUtil.LTF(snapshot1.hp);
+      tempX = NumUtil.toUnscaledFloat(snapshot1.x);
+      tempY = NumUtil.toUnscaledFloat(snapshot1.y);
+      tempLastX = NumUtil.toUnscaledFloat(snapshot1.lastX);
+      tempLastY = NumUtil.toUnscaledFloat(snapshot1.lastY);
+      tempHp = NumUtil.toUnscaledFloat(snapshot1.hp);
     } else {
-      tempX = NumUtil.LTF(snapshot2.x);
-      tempY = NumUtil.LTF(snapshot2.y);
-      tempLastX = NumUtil.LTF(snapshot2.lastX);
-      tempLastY = NumUtil.LTF(snapshot2.lastY);
-      tempHp = NumUtil.LTF(snapshot2.hp);
+      tempX = NumUtil.toUnscaledFloat(snapshot2.x);
+      tempY = NumUtil.toUnscaledFloat(snapshot2.y);
+      tempLastX = NumUtil.toUnscaledFloat(snapshot2.lastX);
+      tempLastY = NumUtil.toUnscaledFloat(snapshot2.lastY);
+      tempHp = NumUtil.toUnscaledFloat(snapshot2.hp);
     }
     float radius = getEntityDimension().radius;
     DrawManager.Game.fillRect(tempX - radius, tempLastX - radius, tempY - radius - 7, tempLastY - radius - 7, (tempHp / 100f) * scale, 6, color);
@@ -173,67 +173,67 @@ public abstract class Entity {
     return getEntityDimension().radius;
   }
   
-  public long getRadiusScaled() {
+  public int getRadiusScaled() {
     return getEntityDimension().radiusScaled;
   }
   
-  public long getX() {
+  public int getX() {
     return entityPosition.x;
   }
   
-  public long getY() {
+  public int getY() {
     return entityPosition.y;
   }
   
-  public long getZ() {
+  public int getZ() {
     return entityPosition.z;
   }
   
-  public long getLastX() {
+  public int getLastX() {
     return entityPosition.lastX;
   }
   
-  public long getLastY() {
+  public int getLastY() {
     return entityPosition.lastY;
   }
   
-  public long getLastZ() {
+  public int getLastZ() {
     return entityPosition.lastY;
   }
   
-  public void setX(long x) {
+  public void setX(int x) {
     entityPosition.x = x;
   }
   
-  public void setY(long y) {
+  public void setY(int y) {
     entityPosition.y = y;
   }
   
-  public void setZ(long z) {
+  public void setZ(int z) {
     entityPosition.z = z;
   }
   
-  public void changeX(long x) {
+  public void changeX(int x) {
     entityPosition.x += x;
   }
   
-  public void changeY(long y) {
+  public void changeY(int y) {
     entityPosition.y += y;
   }
   
-  public void changeZ(long z) {
+  public void changeZ(int z) {
     entityPosition.z += z;
   }
   
-  public void setLastX(long lastX) {
+  public void setLastX(int lastX) {
     entityPosition.lastX = lastX;
   }
   
-  public void setLastY(long lastY) {
+  public void setLastY(int lastY) {
     entityPosition.lastY = lastY;
   }
   
-  public void setLastZ(long lastZ) {
+  public void setLastZ(int lastZ) {
     entityPosition.lastZ = lastZ;
   }
 }

@@ -13,7 +13,7 @@ import com.game.screens.LoadingScreen;
 
 import java.util.ArrayList;
 
-import static com.game.utils.NumUtil.FTL;
+import static com.game.utils.NumUtil.toScaled;
 
 @Init(stage = 2)
 public class VanguardMarine extends Unit {
@@ -49,10 +49,10 @@ public class VanguardMarine extends Unit {
 //    return model;
 //  }
   
-  public VanguardMarine(long x, long y, PlayerColor player) {
+  public VanguardMarine(int x, int y, PlayerColor player) {
     super(player/*, Models.getModelInstance(Models.vanguardMarine)*/, new EntityPosition(x, y, 0, 0));
 //    tags = EnumSet.of(Tags.LIGHT_ARMORED, Tags.BIOLOGICAL, Tags.RANGED);
-    hp = FTL(50);
+    hp = toScaled(50);
     ticksUntilAttack = 4;
     effects = new ArrayList<>();
     unitState = UnitState.IDLE;
@@ -66,8 +66,8 @@ public class VanguardMarine extends Unit {
     
 //    model = Models.vanguardMarine;
     entityDimension = new EntityDimension(16, 10, 8);
-    unitStats = new UnitStats(FTL(10), FTL(100), FTL(0.5f), FTL(4));
-    entityStats = new EntityStats(FTL(50), FTL(1));
+    unitStats = new UnitStats(toScaled(10), toScaled(100), toScaled(0.5f), toScaled(4));
+    entityStats = new EntityStats(toScaled(50), toScaled(1));
     loadingScreen.increment();
   }
   

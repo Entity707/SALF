@@ -32,7 +32,7 @@ public class CollisionUtil {
   }
   
   public static boolean RectCircleCollision(float x1, float y1, float r1/*, Rectangle rect*/) {
-//        return RectCircleCollision(x1, y1, r1, NumUtil.FTL(rect.getX()), NumUtil.FTL(rect.getY()), NumUtil.FTL(rect.getWidth()), NumUtil.FTL(rect.getHeight()));
+//        return RectCircleCollision(x1, y1, r1, NumUtil.toScaled(rect.getX()), NumUtil.toScaled(rect.getY()), NumUtil.toScaled(rect.getWidth()), NumUtil.toScaled(rect.getHeight()));
     return false;
   }
   
@@ -40,8 +40,8 @@ public class CollisionUtil {
     float centerX = x1 + r1;
     float centerY = y1 + r1;
     
-    float closestX = Math.max(x2, Math.min(centerX, x2 + width2));
-    float closestY = Math.max(y2, Math.min(centerY, y2 + height2));
+    float closestX = StrictMath.max(x2, StrictMath.min(centerX, x2 + width2));
+    float closestY = StrictMath.max(y2, StrictMath.min(centerY, y2 + height2));
     
     float distanceX = centerX - closestX;
     float distanceY = centerY - closestY;

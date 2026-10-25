@@ -5,7 +5,7 @@ import com.game.Fonts;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class LoadingScreen/* implements Screen */ {
+public class LoadingScreen extends Screen/* implements Screen */ {
   private final AtomicInteger loading = new AtomicInteger(0);
   private volatile String text = "";
   private final int total;
@@ -33,6 +33,11 @@ public class LoadingScreen/* implements Screen */ {
     DrawManager.strokeRect(200, 880, 1520, 80, 0xFFFFFFFF, 4);
     DrawManager.fillRect(200, 880, ((float) loading.get() / total) * 1520, 80, 0xFFFFFFFF);
     DrawManager.fillText("(" + loading + "/" + total + ") " + text, 960, 780, Fonts.DEFAULT, 20/*, TextAlignment.TOP_MIDDLE*/, 0xFFFFFFFF);
+  }
+  
+  @Override
+  public void tick() {
+  
   }
 
 //    @Override

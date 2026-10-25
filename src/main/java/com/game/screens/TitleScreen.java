@@ -2,12 +2,12 @@ package com.game.screens;
 
 
 import com.game.draw.DrawManager;
-import com.game.utils.IOUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 
 import java.io.File;
 
-public class TitleScreen extends GameWindow/* implements Screen*/ {
+public class TitleScreen extends Screen {
   //    private Rectangle exitButton = new Rectangle(710, 460, 500, 100);
 //    private Buttons selectedButton = Buttons.HOME;
   private ObjectArrayList<File> customMaps = new ObjectArrayList<>();
@@ -19,15 +19,6 @@ public class TitleScreen extends GameWindow/* implements Screen*/ {
   
   
   public TitleScreen() {
-  }
-  
-  private TitleScreen(TitleScreen titleScreen) {//copy constructor
-//        selectedButton = titleScreen.selectedButton;
-    customMaps = IOUtil.getFiles("resources/map/custom");
-    replays = IOUtil.getFiles("resources/replays");
-    selectedIndex = titleScreen.selectedIndex;
-    exit = titleScreen.exit;
-    closing = titleScreen.closing;
   }
   
   public Buttons getSelectedButton() {
@@ -46,10 +37,6 @@ public class TitleScreen extends GameWindow/* implements Screen*/ {
   
   public void resetSelections() {
 //        selectedButton = Buttons.HOME;
-  }
-  
-  public GameWindow copy() {
-    return new TitleScreen(this);
   }
   
   public void tick() {
