@@ -2,7 +2,7 @@ package com.game.entity;
 
 import com.game.utils.NumUtil;
 
-public class EntityDimension {
+public value class EntityDimension {
   public final int widthScaled;
   public final int heightScaled;
   public final int halfWidthScaled;

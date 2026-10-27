@@ -1,13 +1,11 @@
 package com.game.entity.object;
 
 import com.game.entity.Entity;
-import com.game.entity.EntityPosition;
-import com.game.entity.PlayerColor;
 
 public abstract class Object extends Entity {
-  public Object(PlayerColor color/*, ModelInstance modelInstance*/) {
-    super(color/*, modelInstance*/, new EntityPosition(0, 0, 0, 0));
-  }
+//  public Object(PlayerColor color/*, ModelInstance modelInstance*/) {
+//    super(color/*, modelInstance*/, new EntityPosition(0, 0, 0, 0));
+//  }
   
 //  protected static EnumSet<Tags> tags;
   

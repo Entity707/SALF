@@ -3,9 +3,7 @@ package com.game.entity.building.vanguard;
 import com.game.Init;
 import com.game.entity.Entity;
 import com.game.entity.EntityDimension;
-import com.game.entity.EntityPosition;
 import com.game.entity.EntityStats;
-import com.game.entity.PlayerColor;
 import com.game.entity.building.Building;
 import com.game.entity.unit.UnitStats;
 import com.game.input.InputType;
@@ -44,11 +42,11 @@ public class VanguardCommandCenter extends Building {
 //    return null;
 //  }
 //
-  public VanguardCommandCenter(int x, int y, PlayerColor player/*, ModelInstance modelInstance*/) {
-    super(player/*, modelInstance*/, new EntityPosition(x, y, 0, 0));
-    hp = toScaled((float) (Math.random() * 2000));
-    effects = new ArrayList<>();
-  }
+//  public VanguardCommandCenter(int x, int y, PlayerColor player/*, ModelInstance modelInstance*/) {
+//    super(player/*, modelInstance*/, new EntityPosition(x, y, 0, 0));
+//    hp = toScaled((float) (Math.random() * 2000));
+//    effects = new ArrayList<>();
+//  }
   
   public static void init(LoadingScreen loadingScreen) {
     Entity.hasCollision = true;

@@ -2,7 +2,7 @@ package com.game.entity;
 
 import com.game.utils.NumUtil;
 
-public class UnitSize {
+public value class UnitSize {
   private final float width;
   private final float height;
   private final float halfWidth;

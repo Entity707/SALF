@@ -16,16 +16,16 @@ public class Snapshot {
   public int lerpY;
   
   public void set(Entity entity) {
-    x = entity.entityPosition.x;
-    y = entity.entityPosition.y;
-    z = entity.entityPosition.z;
-    lastX = entity.entityPosition.lastX;
-    lastY = entity.entityPosition.lastY;
-    lastZ = entity.entityPosition.lastZ;
-    direction = entity.entityPosition.direction;
-    lastDirection = entity.entityPosition.lastDirection;
-    isSelected = entity.isSelected;
-    hp = entity.hp;
+//    x = entity.entityPosition.x;
+//    y = entity.entityPosition.y;
+//    z = entity.entityPosition.z;
+//    lastX = entity.entityPosition.lastX;
+//    lastY = entity.entityPosition.lastY;
+//    lastZ = entity.entityPosition.lastZ;
+//    direction = entity.entityPosition.direction;
+//    lastDirection = entity.entityPosition.lastDirection;
+//    isSelected = entity.isSelected;
+//    hp = entity.hp;
   }
   
   public int getYLerp() {

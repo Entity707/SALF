@@ -1,5 +1,9 @@
 package com.game.input;
 
+import com.game.Init;
+import com.game.screens.LoadingScreen;
+
+@Init(stage = 1)
 public enum Keys {
   A("a", KeyType.LETTER, 65),
   B("b", KeyType.LETTER, 66),
@@ -95,18 +99,18 @@ public enum Keys {
   LEFT("left", KeyType.SPECIAL, 263),
   RIGHT("right", KeyType.SPECIAL, 262),
   ESCAPE("escape", KeyType.SPECIAL, 256),
-  NONE("none", KeyType.SPECIAL, -1);
-  
+  NONE("none", KeyType.SPECIAL, 1),
+  UNKNOWN("unknown", KeyType.SPECIAL, 0);
   
   private final String string;
   private final KeyType type;
   private final int callbackInt;
   private static final Keys[] keyLookup =  new Keys[349];
-  
-  static {
+  public static void init(LoadingScreen loadingScreen) {
     for (Keys key : values()){
       keyLookup[key.callbackInt] = key;
     }
+    loadingScreen.increment();
   }
   
   Keys(String string, KeyType keyType, int callbackInt) {
@@ -124,6 +128,7 @@ public enum Keys {
   }
   
   public static Keys getKey(int value){
+    if (value < 0)return Keys.UNKNOWN;
     return keyLookup[value];
   }
   

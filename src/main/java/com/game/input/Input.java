@@ -6,16 +6,16 @@ public class Input {
   private final Actions action;
   private final Keys key;
   
-  private final long x;
-  private final long y;
+  private final int x;
+  private final int y;
   
   private final boolean shiftPressed;
   private final boolean controlPressed;
   private final boolean altPressed;
   private final boolean superPressed;
   
-  
-  public Input(int key, int action, long x, long y, boolean isMouse, boolean shiftPressed, boolean controlPressed, boolean altPressed, boolean superPressed) {
+  //press or release
+  public Input(int key, int action, int x, int y, boolean isMouse, boolean shiftPressed, boolean controlPressed, boolean altPressed, boolean superPressed) {
     this.key = Keys.getKey(key);
     this.action = Actions.getAction(this.key);
     
@@ -30,7 +30,8 @@ public class Input {
     this.superPressed = superPressed;
   }
   
-  public Input(InputType inputType, long x, long y, boolean shiftPressed, boolean controlPressed, boolean altPressed, boolean superPressed) {
+  //non press or release
+  public Input(InputType inputType, int x, int y, boolean shiftPressed, boolean controlPressed, boolean altPressed, boolean superPressed) {
     this.key = Keys.NONE;
     this.action = Actions.NONE;
     
@@ -57,11 +58,11 @@ public class Input {
     return inputType;
   }
   
-  public long getX() {
+  public int getX() {
     return x;
   }
   
-  public long getY() {
+  public int getY() {
     return y;
   }
   

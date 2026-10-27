@@ -2,15 +2,11 @@ package com.game.entity.unit.vanguard;
 
 import com.game.Init;
 import com.game.entity.EntityDimension;
-import com.game.entity.EntityPosition;
 import com.game.entity.EntityStats;
-import com.game.entity.PlayerColor;
 import com.game.entity.unit.Unit;
-import com.game.entity.unit.UnitState;
 import com.game.entity.unit.UnitStats;
 import com.game.input.InputType;
 import com.game.screens.LoadingScreen;
-import com.game.utils.NumUtil;
 
 import java.util.ArrayList;
 
@@ -50,15 +46,15 @@ public class VanguardMUV extends Unit {
 //    return model;
 //  }
   
-  public VanguardMUV(int x, int y, PlayerColor player) {
-    super(player/*, Models.getModelInstance(Models.vanguardMUV)*/, new EntityPosition(x, y, 0, 0));
-    
-//    tags = EnumSet.of(Tags.UNARMORED, Tags.MECHANICAL, Tags.MELEE);
-    hp = NumUtil.toScaled((float) (Math.random() * 40));
-    ticksUntilAttack = 4;
-    effects = new ArrayList<>();
-    unitState = UnitState.IDLE;
-  }
+//  public VanguardMUV(int x, int y, PlayerColor player) {
+////    super(player/*, Models.getModelInstance(Models.vanguardMUV)*/, new EntityPosition(x, y, 0, 0));
+//
+////    tags = EnumSet.of(Tags.UNARMORED, Tags.MECHANICAL, Tags.MELEE);
+//    hp = NumUtil.toScaled((float) (Math.random() * 40));
+//    ticksUntilAttack = 4;
+//    effects = new ArrayList<>();
+//    unitState = UnitState.IDLE;
+//  }
   
   
   public static void init(LoadingScreen loadingScreen) {
@@ -69,7 +65,7 @@ public class VanguardMUV extends Unit {
 //    model = Models.vanguardMUV;
     entityDimension = new EntityDimension(10, 10, 6);
     unitStats = new UnitStats(toScaled(10), toScaled(100), toScaled(0.5f), toScaled(4));
-    entityStats = new EntityStats(toScaled(50), toScaled(0));
+//    entityStats = new EntityStats(toScaled(50), toScaled(0));
     loadingScreen.increment();
   }
   

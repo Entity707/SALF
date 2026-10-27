@@ -377,7 +377,7 @@ public class GameCore /*extends Game */ {
     
     @Override
     public void run() {
-      long targetFrameInterval = 50_000_000L; // 20 TPS
+      long targetFrameInterval = 100_000_000L; // 10 TPS
       long targetTime = System.nanoTime() + targetFrameInterval;
       while (!lwjglManager.shouldClose()) {
         long currentTime = System.nanoTime();

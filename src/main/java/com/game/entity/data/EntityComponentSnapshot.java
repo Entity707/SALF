@@ -8,25 +8,27 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 public class EntityComponentSnapshot {
+  //752 bits per unit (i think)
+  //9.4mb for 100k units
   IntArrayList x;
   IntArrayList lastX;
   IntArrayList y;
   IntArrayList lastY;
   IntArrayList z;//TODO: implement these
   IntArrayList lastZ;
+  IntArrayList xSpeed;
+  IntArrayList ySpeed;
   IntArrayList direction;
   IntArrayList lastDirection;
   IntArrayList hp;
   IntArrayList ticksUntilAction;
   BooleanArrayList isSelected;
-  IntArrayList selected;
+  
   BooleanArrayList isActive;
-  IntOpenHashSet activeId;
-  IntOpenHashSet inactiveId;
+  
   IntArrayList nextInCell;
   IntArrayList unitType;
-  IntArrayList visible;
-  IntArrayList visibleSelected;
+  
   IntArrayList generation;
   
   LongArrayList tags;
@@ -36,15 +38,26 @@ public class EntityComponentSnapshot {
   
   LongArrayList effects;
   
+  //for syncing with the other snapshot
+  IntArrayList actionId;
+  
+  IntArrayList team;//which team a unit is on, the index
+  
+  
+  //not for each unit
+  IntArrayList selected;
+  IntArrayList teams;//the teams
+  IntOpenHashSet activeId;
+  IntOpenHashSet inactiveId;
+  IntArrayList visible;
+  IntArrayList visibleSelected;
   LongArrayList effectMask;
   IntArrayList effectTimer;
   IntArrayList effected;
   
-  //for syncing with the other snapshot
   LongArrayList actionValue1;
   LongArrayList actionValue2;
   LongArrayList actionType;
-  IntArrayList actionId;
   IntArrayList globalActionBuffer;
   
   
@@ -59,6 +72,8 @@ public class EntityComponentSnapshot {
     lastX = new IntArrayList(size);
     y = new IntArrayList(size);
     lastY = new IntArrayList(size);
+    xSpeed = new IntArrayList(size);
+    ySpeed = new IntArrayList(size);
     direction = new IntArrayList(size);
     lastDirection = new IntArrayList(size);
     hp = new IntArrayList(size);
@@ -91,6 +106,9 @@ public class EntityComponentSnapshot {
     
     globalActionBuffer = new IntArrayList();
     
+    team = new IntArrayList(size);
+    teams = new IntArrayList();
+    
     for (int i = 0; i<size; i++) inactiveId.add(i);
     
     x.size(size);
@@ -113,11 +131,13 @@ public class EntityComponentSnapshot {
     abilityCooldown.size(size);
     
     effects.size(size);
+    team.size(size);
     
     //set to -1 so it won't think something of id 0 is there
     reset(ticksUntilAction);
     reset(nextInCell);
     reset(unitType);
+    reset(team);
   }
   
   void sortVisible(){

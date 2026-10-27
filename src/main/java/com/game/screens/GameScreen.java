@@ -192,8 +192,8 @@ public class GameScreen extends Screen/* implements Screen*/ {
 //        u.changeX(dx);
 //        u.changeY(dy);
 //    if (entity.getTags().contains(Tags.UNMOVABLE)) return;
-    entity.changeX(x);
-    entity.changeY(y);
+//    entity.changeX(x);
+//    entity.changeY(y);
 //        System.out.println(x);
   }
   

@@ -11,7 +11,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <lwjgl.version>3.4.3</lwjgl.version>
     </properties>
 
@@ -41,7 +40,7 @@
         <dependency>
             <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>3.2.3</version>
+            <version>3.2.4</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -428,6 +427,48 @@
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-macos-arm64</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-opus</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-opus</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-windows</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-opus</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-windows-arm64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-opus</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-linux</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-opus</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-linux-arm64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-opus</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-macos</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-opus</artifactId>
             <version>${lwjgl.version}</version>
             <classifier>natives-macos-arm64</classifier>
         </dependency>

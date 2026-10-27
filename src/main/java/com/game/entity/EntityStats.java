@@ -1,4 +1,4 @@
 package com.game.entity;
 
-public record EntityStats(int maxHp, int armor) {
+public value record EntityStats(int maxHp, int armor) {
 }
