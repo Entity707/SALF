@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Entity Schema",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "unscaledWidth": { "type": "integer" },
+    "unscaledHeight": { "type": "integer" },
+    "unscaledRadius": { "type": "integer" },
+    "abilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ability": { "type": "string" },
+          "action": { "type": "string" },
+          "range": { "type": "integer" }
+        },
+        "required": ["ability", "action", "range"]
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/tags" }
+    },
+    "validCommandTypes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/commandTypes" }
+    },
+    "upgrades": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/upgrade" }
+    },
+    "stat": { "$ref": "#/$defs/stat" },
+    "attack": { "$ref": "#/$defs/attack" },
+    "cost": { "$ref": "#/$defs/cost" }
+  },
+  "required": [
+    "name",
+    "abilities",
+    "tags",
+    "validCommandTypes",
+    "upgrades",
+    "cost",
+    "unscaledWidth",
+    "unscaledHeight",
+    "unscaledRadius"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "upgrade": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "upgradeName": { "type": "string" },
+        "upgradeCost": { "$ref": "#/$defs/cost" },
+        "buildCost": { "$ref": "#/$defs/cost" },
+        "upgradeTime": { "type": "integer" },
+        "supplyCost": { "type": "integer" },
+        "weightCost": { "type": "integer" },
+        "spaceCost": { "type": "integer" },
+        "unscaledWidth": { "type": "integer" },
+        "unscaledHeight": { "type": "integer" },
+        "unscaledRadius": { "type": "integer" },
+        "abilities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ability": { "type": "string" },
+              "action": { "type": "string" },
+              "range": { "type": "integer" }
+            },
+            "required": ["ability", "action", "range"]
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "validCommandTypes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["upgradeTime", "upgradeName"]
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "woodCost": { "type": "integer" },
+        "stoneCost": { "type": "integer" },
+        "lowGradeCost": { "type": "integer" },
+        "highGradeCost": { "type": "integer" },
+        "energyCost": { "type": "integer" },
+        "foodCost": { "type": "integer" },
+        "groundFuelCost": { "type": "integer" },
+        "heavyGroundFuelCost": { "type": "integer" },
+        "airFuelCost": { "type": "integer" }
+      }
+    },
+    "stat": {
+      "allOf": [
+        { "$ref": "#/$defs/statOptional" },
+        { "required": ["maxHp", "hpRegeneration", "armor", "speed", "acceleration", "turnSpeed", "turnAcceleration"] }
+      ]
+    },
+    "statOptional": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxHp": { "type": "integer" },
+        "hpRegeneration": { "type": "integer" },
+        "armor": { "type": "integer" },
+        "speed": { "type": "integer" },
+        "acceleration": { "type": "integer" },
+        "turnSpeed": { "type": "integer" },
+        "turnAcceleration": { "type": "integer" },
+        "energy": { "type": "integer" },
+        "energyRegeneration": { "type": "integer" }
+      }
+    },
+    "attack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "attackSpeed": { "type": "integer" },
+        "attackRange": { "type": "integer" },
+        "damage": { "type": "integer" },
+        "tags": { "$ref": "#/$defs/attackTags" }
+      },
+      "required": ["attackSpeed", "attackRange", "damage", "tags"]
+    },
+    "attackTags": {
+      "type": "string",
+      "enum": ["melee", "ranged", "magic"]
+    },
+    "entityTags": {
+      "type": "string",
+      "enum": ["building", "unit", "hero"]
+    },
+    "tags": {
+      "type": "string",
+      "enum": ["building", "unit", "hero"]
+    },
+    "commandTypes": {
+      "type": "string",
+      "enum": ["building", "unit", "hero"]
+    }
+  }
+}

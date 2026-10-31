@@ -1,50 +1,13 @@
 package com.game.entity.unit.vanguard;
 
 import com.game.Init;
-import com.game.entity.EntityDimension;
-import com.game.entity.EntityStats;
 import com.game.entity.unit.Unit;
-import com.game.entity.unit.UnitStats;
 import com.game.input.InputType;
 import com.game.screens.LoadingScreen;
-
-import java.util.ArrayList;
-
-import static com.game.utils.NumUtil.toScaled;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 @Init(stage = 2)
 public class VanguardMUV extends Unit {
-//  private static Models model;
-  private static int maxHp;
-  private static EntityDimension entityDimension;
-//  private static EnumSet<Tags> tags;
-  private static UnitStats unitStats;
-  private static EntityStats entityStats;
-  
-  @Override
-  protected UnitStats getUnitStats() {
-    return unitStats;
-  }
-  
-  @Override
-  protected EntityStats getEntityStats() {
-    return entityStats;
-  }
-  
-//  @Override
-//  public EnumSet<Tags> getTags() {
-//    return tags;
-//  }
-  
-  @Override
-  protected EntityDimension getEntityDimension() {
-    return entityDimension;
-  }
-  
-//  @Override
-//  public Models getModel() {
-//    return model;
-//  }
   
 //  public VanguardMUV(int x, int y, PlayerColor player) {
 ////    super(player/*, Models.getModelInstance(Models.vanguardMUV)*/, new EntityPosition(x, y, 0, 0));
@@ -52,19 +15,18 @@ public class VanguardMUV extends Unit {
 ////    tags = EnumSet.of(Tags.UNARMORED, Tags.MECHANICAL, Tags.MELEE);
 //    hp = NumUtil.toScaled((float) (Math.random() * 40));
 //    ticksUntilAttack = 4;
-//    effects = new ArrayList<>();
+//    effects = new ObjectArrayList<>();
 //    unitState = UnitState.IDLE;
 //  }
   
   
   public static void init(LoadingScreen loadingScreen) {
-    hasCollision = true;
-    validCommandTypes = new ArrayList<>();
+    validCommandTypes = new ObjectArrayList<>();
     validCommandTypes.add(InputType.MOUSE_RELEASE);//TODO: amek a comandType int
     
 //    model = Models.vanguardMUV;
-    entityDimension = new EntityDimension(10, 10, 6);
-    unitStats = new UnitStats(toScaled(10), toScaled(100), toScaled(0.5f), toScaled(4));
+//    entityDimension = new EntityDimension(10, 10, 6);
+//    unitStats = new UnitStats(toScaled(10), toScaled(100), toScaled(0.5f), toScaled(4));
 //    entityStats = new EntityStats(toScaled(50), toScaled(0));
     loadingScreen.increment();
   }

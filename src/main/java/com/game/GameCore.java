@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 
 public class GameCore /*extends Game */ {
   
-  volatile AtomicLong lastTickTime = new AtomicLong(System.nanoTime());
+  private volatile AtomicLong lastTickTime = new AtomicLong(System.nanoTime());
   private GameStatus gameStatus = GameStatus.START_LOADING;
   
   

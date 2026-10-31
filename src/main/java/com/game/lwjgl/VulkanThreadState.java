@@ -1,9 +1,9 @@
 package com.game.lwjgl;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.vulkan.VK14;
 import org.lwjgl.vulkan.VkCommandBuffer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 class VulkanThreadState {
@@ -47,13 +47,13 @@ class VulkanThreadState {
   
   static final class ThreadState {
     final long[] pools;
-    final List<List<VkCommandBuffer>> buffers = new ArrayList<>();
+    final List<List<VkCommandBuffer>> buffers = new ObjectArrayList<>();
     final int[] used;
     
     ThreadState(int frames) {
       pools = new long[frames];
       used = new int[frames];
-      for (int i = 0; i < frames; i++) buffers.add(new ArrayList<>());
+      for (int i = 0; i < frames; i++) buffers.add(new ObjectArrayList<>());
     }
   }
 }

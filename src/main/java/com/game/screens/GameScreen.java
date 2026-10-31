@@ -17,7 +17,7 @@ import oshi.hardware.CentralProcessor;
 import tools.jackson.databind.JsonNode;
 
 import java.io.File;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
@@ -728,7 +728,7 @@ public class GameScreen extends Screen/* implements Screen*/ {
     }
     
     private List<CollisionResult> detectSequentially() {
-      List<CollisionResult> results = new ArrayList<>();
+      List<CollisionResult> results = new ObjectArrayList<>();
       for (int i = start; i < end; i++) {
         int cx1 = xArr[i] + rArr[i];
         int cy1 = yArr[i] + rArr[i];

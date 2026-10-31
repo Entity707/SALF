@@ -8,10 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.stream.Stream;
-
-import static java.lang.Math.random;
 
 @Init(stage = 1)
 public class SoundManager {
@@ -24,7 +21,7 @@ public class SoundManager {
   private static float bgmVolume = 1.0f;
   private static float sfxVolume = 1.0f;
   
-  private static final ArrayList<String> bgms = new ArrayList<>();
+//  private static final ObjectArrayList<String> bgms = new ObjectArrayList<>();
   
   public static void init(LoadingScreen loadingScreen) {
 //        miniAudio = new MiniAudio();
@@ -35,7 +32,7 @@ public class SoundManager {
       paths.filter(Files::isRegularFile)
           .forEach(sourcePath -> {
             String pathString = sourcePath.toAbsolutePath().toString();
-            bgms.add(pathString);
+//            bgms.add(pathString);
 //                        if (pathString.contains("geometry dash")) {
 //                            for (int i = 0; i < 3; i++) {
 //                                bgms.add(pathString);
@@ -75,8 +72,8 @@ public class SoundManager {
   }
   
   public static void startBGM() {
-    if (bgms.isEmpty()) return;
-    playNextBGM();
+//    if (bgms.isEmpty()) return;
+//    playNextBGM();
   }
   
   public static void newBGM() {
@@ -93,10 +90,10 @@ public class SoundManager {
 //            bgmPlayer.dispose();
 //        }
     
-    bgmNum = (int) (random() * bgms.size());
-    String currentPath = bgms.get(bgmNum);
+//    bgmNum = (int) (random() * bgms.size());
+//    String currentPath = bgms.get(bgmNum);
 //        bgmName = Paths.get(currentPath).getFileName().toString().replaceFirst("[.][^.]+$", "");
-    bgmName = Paths.get(currentPath).getFileName().toString().replaceAll(".mp3|.mpeg", "");
+//    bgmName = Paths.get(currentPath).getFileName().toString().replaceAll(".mp3|.mpeg", "");
 
 //        try {
 //            bgmPlayer = miniAudio.createSound(currentPath);

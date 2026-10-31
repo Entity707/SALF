@@ -136,8 +136,8 @@ public class TitleScreen extends Screen {
 ////            System.out.println(selectedIndex);
 //        }
 //        if (selectedButton == Buttons.CUSTOM) {
-//            customMaps = new ArrayList<>(Arrays.asList((new File("resources/map/custom").listFiles())));
-//            customMapsName = new ArrayList<>();
+//            customMaps = new ObjectArrayList<>(Arrays.asList((new File("resources/map/custom").listFiles())));
+//            customMapsName = new ObjectArrayList<>();
 //            for (File customMap : customMaps) {
 //                var objectMapper = new ObjectMapper();
 //                JsonNode map = objectMapper.readTree(new File(customMap.getPath() + "/map.json"));
@@ -146,8 +146,8 @@ public class TitleScreen extends Screen {
 //
 //        }
 //        if (selectedButton == Buttons.REPLAYS) {
-//            replays = new ArrayList<>(Arrays.asList((new File("resources/replays").listFiles())));
-//            replaysName = new ArrayList<>();
+//            replays = new ObjectArrayList<>(Arrays.asList((new File("resources/replays").listFiles())));
+//            replaysName = new ObjectArrayList<>();
 //            for (File replay : replays) {
 //                JSONParser parser = new JSONParser();
 //                try {

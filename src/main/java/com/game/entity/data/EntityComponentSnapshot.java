@@ -8,8 +8,8 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 public class EntityComponentSnapshot {
-  //752 bits per unit (i think)
-  //9.4mb for 100k units
+  //848 bits per unit (i think)
+  //9.4mb for 100k units//need to recacluatae after changing bits per unit
   IntArrayList x;
   IntArrayList lastX;
   IntArrayList y;
@@ -18,6 +18,9 @@ public class EntityComponentSnapshot {
   IntArrayList lastZ;
   IntArrayList xSpeed;
   IntArrayList ySpeed;
+  IntArrayList targetX;//TODO: implement these
+  IntArrayList targetY;
+  IntArrayList targetDirection;
   IntArrayList direction;
   IntArrayList lastDirection;
   IntArrayList hp;
@@ -70,12 +73,21 @@ public class EntityComponentSnapshot {
   EntityComponentSnapshot(int size){
     x = new IntArrayList(size);
     lastX = new IntArrayList(size);
+    targetX = new IntArrayList(size);
+    
     y = new IntArrayList(size);
     lastY = new IntArrayList(size);
+    targetY = new IntArrayList(size);
+    
+    z = new IntArrayList(size);
+    lastZ = new IntArrayList(size);
+    
     xSpeed = new IntArrayList(size);
     ySpeed = new IntArrayList(size);
     direction = new IntArrayList(size);
     lastDirection = new IntArrayList(size);
+    targetDirection = new IntArrayList(size);
+    
     hp = new IntArrayList(size);
     ticksUntilAction = new IntArrayList(size);
     isSelected = new BooleanArrayList(size);
@@ -113,10 +125,16 @@ public class EntityComponentSnapshot {
     
     x.size(size);
     lastX.size(size);
-    y .size(size);
+    targetX.size(size);
+    
+    y.size(size);
     lastY.size(size);
+    targetY.size(size);
+    
     direction.size(size);
     lastDirection.size(size);
+    targetDirection.size(size);
+    
     hp.size(size);
     ticksUntilAction.size(size);
     isSelected.size(size);

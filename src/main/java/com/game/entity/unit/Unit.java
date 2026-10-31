@@ -1,70 +1,20 @@
 package com.game.entity.unit;
 
-import com.game.draw.DrawManager;
 import com.game.entity.Abilities;
 import com.game.entity.Entity;
-
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public abstract class Unit extends Entity {
   
-  protected static ArrayList<Abilities> abilities;
-  
-  
-  abstract protected UnitStats getUnitStats();
-  
-  protected int ticksUntilAttack;
-  
-  protected UnitState unitState;
-  protected int targetX;
-  protected int targetY;
-  protected int targetDirection;
-  
-  public void setFormationIndex(int formationIndex) {
-    this.formationIndex = formationIndex;
-  }
-  
-  public void changeFormationIndex(int amount) {
-    formationIndex += amount;
-  }
+  protected static ObjectArrayList<Abilities> abilities;
   
   protected Entity attackTarget;
   
-  public int getFormationIndex() {
-    return formationIndex;
-  }
-  
-  protected int formationIndex = 0;
-  
-  
-//  public Unit(PlayerColor color/*, ModelInstance modelInstance*/, EntityPosition entityPosition) {
-//    super(color/*, modelInstance*/, entityPosition);
-//  }
-  
-  
-  public int getTargetX() {
-    return targetX;
-  }
-  
-  public int getTargetY() {
-    return targetY;
-  }
-  
-  
-  public UnitState getUnitState() {
-    return unitState;
-  }
-  
-  public void setUnitState(UnitState unitState) {
-    this.unitState = unitState;
-  }
-  
-  
   public void drawTarget() {
-    if (unitState != UnitState.MOVING) {
-      return;
-    }
-    DrawManager.Game.fillCircleScaledCull(targetX - 50000, targetX - 50000, targetY - 50000, targetY - 50000, 100000, 0x00FF00FF);
+//    if (unitState != UnitState.MOVING) {
+//      return;
+//    }
+//    DrawManager.Game.fillCircleScaledCull(targetX - 50000, targetX - 50000, targetY - 50000, targetY - 50000, 100000, 0x00FF00FF);
   }
   
 //  @Override

@@ -6,6 +6,8 @@ layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 #define NORMALIZED_BIT_COUNT 15u    // the larger component is scaled to exactly this many bits
 #define MAXIMUM_RADIUS_SUM (1u << 22)
 
+//TODO: make this work with the new 22:10 ints
+
 struct Entity {
     int positionX;
     int positionY;
@@ -21,15 +23,15 @@ layout(std140, set = 0, binding = 0) uniform Parameters {
 };
 
 layout(std430, set = 0, binding = 1) readonly buffer EntitiesBuffer {
-    Entity Entities[];          // sorted by cell
+    Entity Entities[];
 };
 
 layout(std430, set = 0, binding = 2) readonly buffer CellStartBuffer {
-    uint CellStart[];           // GridWidth*GridHeight + 1 prefix sums
+    uint CellStart[];
 };
 
 layout(std430, set = 0, binding = 3) writeonly buffer OutputMoveBuffer {
-    ivec2 OutputMove[];         // indexed by sorted entity index
+    ivec2 OutputMove[];
 };
 
 uint AbsoluteValueAsUnsigned(int value) {
@@ -39,12 +41,12 @@ uint AbsoluteValueAsUnsigned(int value) {
 // floor(multiplicand * multiplier / divisor)
 // Requires multiplicand < 2^16, multiplier < 2^22, 0 < divisor < 2^16.
 uint MultiplyThenDivide(uint multiplicand, uint multiplier, uint divisor) {
-    uint multiplierHighBits = multiplier >> 11;     // < 2^11
+    uint multiplierHighBits = multiplier >> 11;// < 2^11
     uint multiplierLowBits = multiplier & 2047u;
-    uint partialProduct = multiplicand * multiplierHighBits;    // < 2^27
+    uint partialProduct = multiplicand * multiplierHighBits;// < 2^27
     uint quotient = partialProduct / divisor;
-    uint remainder = partialProduct - quotient * divisor;       // < 2^16
-    partialProduct = (remainder << 11) + multiplicand * multiplierLowBits;  // < 2^27 + 2^27
+    uint remainder = partialProduct - quotient * divisor;// < 2^16
+    partialProduct = (remainder << 11) + multiplicand * multiplierLowBits;// < 2^27 + 2^27
     return (quotient << 11) + partialProduct / divisor;
 }
 
@@ -65,7 +67,6 @@ void main() {
 
     if (firstColumn <= lastColumn) {
         for (int rowIndex = firstRow; rowIndex <= lastRow; rowIndex++) {
-            // Cells are row-major, so the 3 cells of a row are ONE contiguous range.
             uint firstEntityIndex = CellStart[rowIndex * GridWidth + firstColumn];
             uint endEntityIndex = CellStart[rowIndex * GridWidth + lastColumn + 1];
 
@@ -79,18 +80,16 @@ void main() {
                 uint absoluteDeltaY = AbsoluteValueAsUnsigned(deltaY);
                 uint radiusSum = min(uint(thisEntity.radius + otherEntity.radius), MAXIMUM_RADIUS_SUM);
 
-                // Cheap rejects: bounding box, then octagon.
+                // bounding box, then octagon.
                 if (absoluteDeltaX >= radiusSum || absoluteDeltaY >= radiusSum) continue;
                 if ((((absoluteDeltaX + absoluteDeltaY) * 181u) >> 8) >= radiusSum) continue;
 
                 if ((absoluteDeltaX | absoluteDeltaY) == 0u) {
-                    // Exactly stacked: separate along X, opposite directions by index.
                     int stackedPushDistance = int((radiusSum + 1u) >> 1);
                     totalPush.x += (entityIndex < otherEntityIndex) ? -stackedPushDistance : stackedPushDistance;
                     continue;
                 }
 
-                // Normalize so the larger component has exactly 15 bits (keeps squares < 2^31).
                 uint largerComponent = max(absoluteDeltaX, absoluteDeltaY);
                 uint bitLength = uint(findMSB(largerComponent)) + 1u;
                 uint normalizedX, normalizedY, shiftAmount;

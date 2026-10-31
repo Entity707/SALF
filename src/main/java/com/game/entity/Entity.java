@@ -2,18 +2,16 @@ package com.game.entity;
 
 
 import com.game.input.InputType;
-
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public abstract class Entity {
-
-  protected static boolean hasCollision;
-  protected static ArrayList<InputType> validCommandTypes = new ArrayList<>();
+  protected static ObjectArrayList<InputType> validCommandTypes = new ObjectArrayList<>();
+  protected static Int2ObjectOpenHashMap<Enum<?>> playerStats;
   
-  protected abstract EntityStats getEntityStats();
+  protected abstract Enum<?> getPlayerStats(int player);
   
-  protected abstract EntityDimension getEntityDimension();
-  
+  public abstract Stat getStat(int player);
   
 //  public void drawHeathBar(boolean isSnapshot1) {
 ////    if (getTags().contains(Tags.INVULNERABLE)) {

@@ -2,6 +2,7 @@ package com.game.screens;
 
 import com.game.input.Keys;
 import com.game.utils.LoggerUtil;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 
 import java.io.File;
@@ -12,17 +13,18 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
+
 public class MapEditorScreen extends Screen/* implements Screen */ {
   private String directory;
   private boolean isRenaming;
   private String newName;
   
-  private ArrayList<ArrayList<Integer>> tileMap = new ArrayList<>();
-  private ArrayList<ArrayList<Integer>> heightMap = new ArrayList<>();
-  //    private ArrayList<Image> tiles = new ArrayList<>();
-  private ArrayList<File> units = new ArrayList<>();
-  private ArrayList<File> buildings = new ArrayList<>();
-  private ArrayList<File> objects = new ArrayList<>();
+  private ObjectArrayList<ArrayList<Integer>> tileMap = new ObjectArrayList<>();
+  private ObjectArrayList<ArrayList<Integer>> heightMap = new ObjectArrayList<>();
+  //    private ObjectArrayList<Image> tiles = new ObjectArrayList<>();
+  private ObjectArrayList<File> units = new ObjectArrayList<>();
+  private ObjectArrayList<File> buildings = new ObjectArrayList<>();
+  private ObjectArrayList<File> objects = new ObjectArrayList<>();
   private float tileWidth;
   private final int tileIndex;
   private int height = 0;
@@ -38,12 +40,12 @@ public class MapEditorScreen extends Screen/* implements Screen */ {
     isRenaming = mapEditorScreen.isRenaming;
     newName = mapEditorScreen.newName;
     
-    tileMap = (ArrayList<ArrayList<Integer>>) mapEditorScreen.tileMap.clone();
-    heightMap = (ArrayList<ArrayList<Integer>>) mapEditorScreen.heightMap.clone();
+//    tileMap = (ArrayList<ArrayList<Integer>>) mapEditorScreen.tileMap.clone();
+//    heightMap = (ArrayList<ArrayList<Integer>>) mapEditorScreen.heightMap.clone();
 //        tiles = (ArrayList<Image>) mapEditorScreen.tiles.clone();
-    units = new ArrayList<>();
-    buildings = new ArrayList<>();
-    objects = new ArrayList<>();
+    units = new ObjectArrayList<>();
+    buildings = new ObjectArrayList<>();
+    objects = new ObjectArrayList<>();
     tileWidth = mapEditorScreen.tileIndex;
     tileIndex = mapEditorScreen.tileIndex;
     height = mapEditorScreen.height;
@@ -124,7 +126,7 @@ public class MapEditorScreen extends Screen/* implements Screen */ {
 //        File[] selectedDirectory;
 //        if (returnVal == JFileChooser.APPROVE_OPTION) {
 //            selectedDirectory = chooser.getSelectedFiles();
-//            ArrayList<HashMap<String, Boolean>> hasFiles= new ArrayList<>(selectedDirectory.length);
+//            ObjectArrayList<HashMap<String, Boolean>> hasFiles= new ObjectArrayList<>(selectedDirectory.length);
 //            for (int i = 0; i < hasFiles.size();i++){
 //                hasFiles.add(new HashMap<String, Boolean>());
 //                for (String file : files){//populate hashMap

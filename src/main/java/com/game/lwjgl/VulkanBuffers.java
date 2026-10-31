@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -11,7 +12,6 @@ import org.lwjgl.vulkan.VkPhysicalDeviceMemoryProperties;
 
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-import java.util.ArrayList;
 
 class VulkanBuffers {
   private VulkanBuffers() {
@@ -82,7 +82,7 @@ class VulkanBuffers {
       lwjglData.instanceMapped = MemoryUtil.memByteBuffer(pData.get(0), (int) size);
     }
     
-    lwjglData.renderTasks = new ArrayList<>();
+    lwjglData.renderTasks = new ObjectArrayList<>();
     int t = 0;
     for (int i = 0; i < lwjglData.renderThreads; i++)
       lwjglData.renderTasks.add(makeTask(lwjglData, VulkanRenderBatchTask2D.Kind.ENTITIES, i, lwjglData.renderThreads, t++));

@@ -1,6 +1,7 @@
 package com.game.lwjgl;
 
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.shaderc.Shaderc;
 import org.lwjgl.vulkan.VK14;
@@ -9,7 +10,7 @@ import org.lwjgl.vulkan.VkShaderModuleCreateInfo;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -41,7 +42,7 @@ class LwjglShaderc {
     Shaderc.shaderc_compile_options_set_optimization_level(baseOptions, Shaderc.shaderc_optimization_level_performance);
     Shaderc.shaderc_compile_options_set_target_env(baseOptions, Shaderc.shaderc_target_env_vulkan, Shaderc.shaderc_env_version_vulkan_1_3);
     
-    List<Future<?>> futures = new ArrayList<>();
+    List<Future<?>> futures = new ObjectArrayList<>();
     for (Shaders shader : Shaders.values()) {
       futures.add(executorService.submit(() -> {
         long compiler = Shaderc.shaderc_compiler_initialize();
