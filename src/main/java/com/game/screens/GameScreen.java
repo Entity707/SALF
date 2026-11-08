@@ -125,7 +125,7 @@ public class GameScreen extends Screen/* implements Screen*/ {
       try {
         Thread.sleep(125);
       } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+        LoggerUtil.error(e);
       }
       long totalTime = System.nanoTime();
       loadingScreen.addText("loading Icons");
@@ -137,7 +137,7 @@ public class GameScreen extends Screen/* implements Screen*/ {
       try {
         Thread.sleep(250);
       } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+        LoggerUtil.error(e);
       }
       isLoadingFinished = true;
     });
@@ -559,7 +559,7 @@ public class GameScreen extends Screen/* implements Screen*/ {
 
     long t6 = System.nanoTime();
     if (tickNum % 2 == 0)
-      LoggerUtil.log(PerformanceType.TICK, "replay:", (t2 - t1) / 1000000d, "input:", (t3 - t2) / 1000000d, "physics:", (t4 - t3) / 1000000d, "spatial grid:", (t5 - t4) / 1000000d, "update:" + (t6 - t5) / 1000000d);
+      LoggerUtil.info(PerformanceType.TICK.getString(), "replay:", (t2 - t1) / 1000000d, "input:", (t3 - t2) / 1000000d, "physics:", (t4 - t3) / 1000000d, "spatial grid:", (t5 - t4) / 1000000d, "update:" + (t6 - t5) / 1000000d);
 //        System.out.println("input: " + (t2-t1)/1000000d + "update: " + (t3-t2)/1000000d + "ms  physics: " + (t4-t3)/1000000d);
   }
   

@@ -57,7 +57,7 @@ public class TileManager {
       
       
     } catch (FileNotFoundException e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
   }
   

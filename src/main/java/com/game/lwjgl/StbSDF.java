@@ -1,6 +1,7 @@
 package com.game.lwjgl;
 
 import com.game.Fonts;
+import com.game.utils.LoggerUtil;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.stb.STBTTFontinfo;
@@ -68,7 +69,7 @@ class StbSDF {
       LongBuffer pImage = stack.mallocLong(1);
       PointerBuffer pAlloc = stack.mallocPointer(1);
       if (Vma.vmaCreateImage(lwjglData.vmaAllocator, imageInfo, imageAlloc, pImage, pAlloc, null) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to allocate font image");
+        LoggerUtil.error("failed to allocate font image");
       }
       lwjglData.fontImage = pImage.get(0);
       lwjglData.fontAllocation = pAlloc.get(0);
@@ -85,7 +86,7 @@ class StbSDF {
       LongBuffer pStaging = stack.mallocLong(1);
       PointerBuffer pStagingAlloc = stack.mallocPointer(1);
       if (Vma.vmaCreateBuffer(lwjglData.vmaAllocator, bufInfo, stagingAlloc, pStaging, pStagingAlloc, null) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to allocate font staging buffer");
+        LoggerUtil.error("failed to allocate font staging buffer");
       }
       long staging = pStaging.get(0), stagingMem = pStagingAlloc.get(0);
       
@@ -128,7 +129,7 @@ class StbSDF {
   
   private static BakedAtlas createSDFAtlas(ByteBuffer ttf, int size) {
     STBTTFontinfo fontInfo = STBTTFontinfo.create();
-    if (!STBTruetype.stbtt_InitFont(fontInfo, ttf)) throw new RuntimeException("bad font data");
+    if (!STBTruetype.stbtt_InitFont(fontInfo, ttf)) LoggerUtil.error("bad font data");
     
     BakedAtlas atlas = new BakedAtlas();
     atlas.pixelData = BufferUtils.createByteBuffer(size * size);
@@ -198,7 +199,7 @@ class StbSDF {
           .baseMipLevel(0).levelCount(1).baseArrayLayer(0).layerCount(numFonts);
       LongBuffer pView = stack.mallocLong(1);
       if (VK14.vkCreateImageView(lwjglData.vkDevice, viewInfo, null, pView) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create font image view");
+        LoggerUtil.error("failed to create font image view");
       }
       lwjglData.fontImageView = pView.get(0);
       
@@ -211,7 +212,7 @@ class StbSDF {
           .addressModeW(VK14.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
       LongBuffer pSampler = stack.mallocLong(1);
       if (VK14.vkCreateSampler(lwjglData.vkDevice, samplerInfo, null, pSampler) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create font sampler");
+        LoggerUtil.error("failed to create font sampler");
       }
       lwjglData.fontSampler = pSampler.get(0);
     }
@@ -222,7 +223,8 @@ class StbSDF {
       byte[] bytes = Files.readAllBytes(Path.of(path));
       return BufferUtils.createByteBuffer(bytes.length).put(bytes).flip();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      LoggerUtil.error(e);
+      return null;
     }
   }
   

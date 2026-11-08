@@ -33,20 +33,20 @@ public class ReplayScreen extends Screen {
       Files.createDirectories(Paths.get(directory));
       //add map file
     } catch (IOException e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
     
     file = new File(directory + "/replay.jsonl");
     try {
       FileUtils.copyDirectory(map, new File(directory));
     } catch (IOException e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
     executor = Executors.newSingleThreadExecutor(Thread::new);
     try {
       writer = new PrintWriter(new BufferedWriter(new FileWriter(directory + "/replay.jsonl")));
     } catch (IOException e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
 
 
@@ -80,7 +80,7 @@ public class ReplayScreen extends Screen {
       try {
         writer.println(objectMapper.writeValueAsString(newTick));
       } catch (Exception e) {
-        LoggerUtil.log(e);
+        LoggerUtil.error(e);
       }
     });
   }

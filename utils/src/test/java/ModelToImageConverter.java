@@ -79,7 +79,7 @@ public class ModelToImageConverter {
 //        try {
 //            return importer.load(file.toURI().toURL()).getRoot();
 //        } catch (IOException e) {
-//            throw new RuntimeException(e);
+//            LoggerUtil.error(e);
 //        }
 //    }
 //

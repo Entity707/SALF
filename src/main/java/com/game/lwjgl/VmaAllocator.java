@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.vma.Vma;
@@ -26,7 +27,7 @@ class VmaAllocator {
       
       int result = Vma.vmaCreateAllocator(allocatorCreateInfo, pAllocator);
       if (result != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create VMA allocator: " + result);
+        LoggerUtil.error("failed to create VMA allocator: " + result);
       }
       
       lwjglData.vmaAllocator = pAllocator.get(0);

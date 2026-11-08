@@ -29,7 +29,7 @@ public class ModelLoaderUtil {
 //                            Model model = sceneAsset.scene.model;
 //                            Models.setModel(modelKey, model);
 //                        } catch (Exception e) {
-//                            LoggerUtil.log(e);
+//                            LoggerUtil.error(e);
 //                            latch.countDown();
 //                        } finally {
 //                            latch.countDown();
@@ -38,12 +38,12 @@ public class ModelLoaderUtil {
 //                    try {
 //                        latch.await();
 //                    } catch (InterruptedException e) {
-//                        LoggerUtil.log(e);
+//                        LoggerUtil.error(e);
 //                    }
             loadingScreen.increment();
           });
     } catch (IOException e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
   }
 
@@ -104,7 +104,7 @@ public class ModelLoaderUtil {
 //                loadingScreen.increment();
 //                loadingScreen.draw();
 //            } catch (Exception e) {
-//                LoggerUtil.log(e);
+//                LoggerUtil.error(e);
 //            } finally {
 //                latch.countDown();
 //            }
@@ -112,7 +112,7 @@ public class ModelLoaderUtil {
 //        try {
 //            latch.await();
 //        } catch (InterruptedException e) {
-//            LoggerUtil.log(e);
+//            LoggerUtil.error(e);
 //        }
 //    }
 //
@@ -134,7 +134,7 @@ public class ModelLoaderUtil {
 //        try {
 //            latch.await();
 //        } catch (InterruptedException e) {
-//            LoggerUtil.log(e);
+//            LoggerUtil.error(e);
 //        }
 //        return image[0];
 //    }
@@ -164,8 +164,8 @@ public class ModelLoaderUtil {
 ////                imageView.setFitHeight(imageSize);
 ////                output[0] = imageView.snapshot(null, null);
 ////            } catch (Exception e) {
-////                LoggerUtil.log(e);
-////                throw new RuntimeException(e);
+////                LoggerUtil.error(e);
+////                LoggerUtil.error(e);
 ////            }finally {
 ////                latch.countDown();
 ////            }
@@ -173,7 +173,7 @@ public class ModelLoaderUtil {
 ////        try {
 ////            latch.await();
 ////        } catch (InterruptedException e) {
-////            LoggerUtil.log(e);
+////            LoggerUtil.error(e);
 ////        }
 ////        return output[0];
 ////    }

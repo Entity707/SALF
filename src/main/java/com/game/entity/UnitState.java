@@ -1,4 +1,4 @@
-package com.game.entity.unit;
+package com.game.entity;
 
 public enum UnitState {
   MOVING,

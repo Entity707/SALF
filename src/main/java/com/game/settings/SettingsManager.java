@@ -104,7 +104,7 @@ public class SettingsManager {
         }
       }
     } catch (JacksonException e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
   }
   
@@ -169,7 +169,7 @@ public class SettingsManager {
       objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, root);
       
     } catch (Exception e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
   }
   

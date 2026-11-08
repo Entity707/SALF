@@ -110,12 +110,6 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
             <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl</artifactId>
-            <version>${lwjgl.version}</version>
             <classifier>natives-macos-arm64</classifier>
         </dependency>
 
@@ -123,12 +117,6 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-vulkan</artifactId>
             <version>${lwjgl.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-vulkan</artifactId>
-            <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
@@ -170,12 +158,6 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-glfw</artifactId>
             <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-glfw</artifactId>
-            <version>${lwjgl.version}</version>
             <classifier>natives-macos-arm64</classifier>
         </dependency>
 
@@ -207,12 +189,6 @@
             <artifactId>lwjgl-shaderc</artifactId>
             <version>${lwjgl.version}</version>
             <classifier>natives-linux-arm64</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-shaderc</artifactId>
-            <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
@@ -254,12 +230,6 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-vma</artifactId>
             <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-vma</artifactId>
-            <version>${lwjgl.version}</version>
             <classifier>natives-macos-arm64</classifier>
         </dependency>
 
@@ -291,12 +261,6 @@
             <artifactId>lwjgl-ktx</artifactId>
             <version>${lwjgl.version}</version>
             <classifier>natives-linux-arm64</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-ktx</artifactId>
-            <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
@@ -338,12 +302,6 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-assimp</artifactId>
             <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-assimp</artifactId>
-            <version>${lwjgl.version}</version>
             <classifier>natives-macos-arm64</classifier>
         </dependency>
 
@@ -380,12 +338,6 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-openal</artifactId>
             <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-openal</artifactId>
-            <version>${lwjgl.version}</version>
             <classifier>natives-macos-arm64</classifier>
         </dependency>
 
@@ -417,12 +369,6 @@
             <artifactId>lwjgl-stb</artifactId>
             <version>${lwjgl.version}</version>
             <classifier>natives-linux-arm64</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-stb</artifactId>
-            <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
@@ -459,12 +405,6 @@
             <artifactId>lwjgl-opus</artifactId>
             <version>${lwjgl.version}</version>
             <classifier>natives-linux-arm64</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-opus</artifactId>
-            <version>${lwjgl.version}</version>
-            <classifier>natives-macos</classifier>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>

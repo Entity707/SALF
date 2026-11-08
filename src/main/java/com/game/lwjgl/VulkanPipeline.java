@@ -1,6 +1,7 @@
 package com.game.lwjgl;
 
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK14;
 import org.lwjgl.vulkan.VkComputePipelineCreateInfo;
@@ -69,7 +70,7 @@ class VulkanPipeline {
       
       long[] pPipelineLayout = new long[1];
       if (VK14.vkCreatePipelineLayout(lwjglData.vkDevice, layoutInfo, null, pPipelineLayout) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create pipeline layout");
+        LoggerUtil.error("failed to create pipeline layout");
       }
       lwjglData.pipelineLayout2D = pPipelineLayout[0];
       return pPipelineLayout[0];
@@ -91,7 +92,7 @@ class VulkanPipeline {
       
       long[] pPipelineLayout = new long[1];
       if (VK14.vkCreatePipelineLayout(lwjglData.vkDevice, layoutInfo, null, pPipelineLayout) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create pipeline layout");
+        LoggerUtil.error("failed to create pipeline layout");
       }
       return pPipelineLayout[0];
     }
@@ -217,7 +218,7 @@ class VulkanPipeline {
       int result = VK14.vkCreateGraphicsPipelines(device, VK14.VK_NULL_HANDLE, pipelineInfo, null, pPipeline);
       
       if (result != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create graphics pipeline " + result);
+        LoggerUtil.error("failed to create graphics pipeline " + result);
       }
       
       return pPipeline.get(0);
@@ -243,7 +244,7 @@ class VulkanPipeline {
       int result = VK14.vkCreateComputePipelines(device, VK14.VK_NULL_HANDLE, pipelineInfo, null, pPipeline);
       
       if (result != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create compute pipeline: " + result);
+        LoggerUtil.error("failed to create compute pipeline: " + result);
       }
       
       return pPipeline[0];

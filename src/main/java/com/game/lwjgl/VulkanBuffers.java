@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import com.game.utils.LoggerUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
@@ -27,7 +28,8 @@ class VulkanBuffers {
         }
       }
     }
-    throw new RuntimeException("no suitable memory type");
+    LoggerUtil.error("no suitable memory type");
+    return 0;
   }
   
   static long[] createBuffer(LwjglData lwjglData, long size, int usage, int props) {
@@ -39,7 +41,7 @@ class VulkanBuffers {
           .sharingMode(VK14.VK_SHARING_MODE_EXCLUSIVE);
       LongBuffer pBuffer = stack.mallocLong(1);
       if (VK14.vkCreateBuffer(lwjglData.vkDevice, info, null, pBuffer) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create buffer");
+        LoggerUtil.error("failed to create buffer");
       }
       long buffer = pBuffer.get(0);
       
@@ -52,7 +54,7 @@ class VulkanBuffers {
           .memoryTypeIndex(findMemoryType(lwjglData, req.memoryTypeBits(), props));
       LongBuffer pMem = stack.mallocLong(1);
       if (VK14.vkAllocateMemory(lwjglData.vkDevice, alloc, null, pMem) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to allocate buffer memory");
+        LoggerUtil.error("failed to allocate buffer memory");
       }
       VK14.vkBindBufferMemory(lwjglData.vkDevice, buffer, pMem.get(0), 0);
       return new long[]{buffer, pMem.get(0)};

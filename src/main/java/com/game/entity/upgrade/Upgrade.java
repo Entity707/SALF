@@ -1,10 +1,10 @@
-package com.game.entity;
+package com.game.entity.upgrade;
 
 import com.game.utils.NumUtil;
 
-public value class Stat {
-  private Stat parent;
-  private Stat[] children;
+public value class Upgrade {
+  private int parentIndex;
+  private int[] childrenIndex;
   
   private int woodCost;
   private int stoneCost;
@@ -55,14 +55,14 @@ public value class Stat {
   private int radius;
   private int diameter;
   
-  public Stat(int maxHp, int hpRegeneration, int armor, int speed, int acceleration, int turnSpeed,
-              int turnAcceleration, int energy, int energyRegeneration, int attackSpeed,
-              int damage, int upgradeTime,
-              int supplyCost, int weightCost, int spaceCost,
-              float unscaledWidth, float unscaledHeight, float unscaledRadius,
-              int woodCost, int stoneCost, int lowGradeCost, int highGradeCost, int energyCost, int foodCost,
-              int upgradeWoodCost, int upgradeStoneCost, int upgradeLowGradeCost, int upgradeHighGradeCost,
-              int upgradeEnergyCost, int upgradeFoodCost, Stat parent, Stat... children) {
+  public Upgrade(int maxHp, int hpRegeneration, int armor, int speed, int acceleration, int turnSpeed,
+                 int turnAcceleration, int energy, int energyRegeneration, int attackSpeed,
+                 int damage, int upgradeTime,
+                 int supplyCost, int weightCost, int spaceCost,
+                 float unscaledWidth, float unscaledHeight, float unscaledRadius,
+                 int woodCost, int stoneCost, int lowGradeCost, int highGradeCost, int energyCost, int foodCost,
+                 int upgradeWoodCost, int upgradeStoneCost, int upgradeLowGradeCost, int upgradeHighGradeCost,
+                 int upgradeEnergyCost, int upgradeFoodCost, int parent, int... children) {
     this.maxHp = maxHp;
     this.hpRegeneration = hpRegeneration;
     this.armor = armor;
@@ -110,8 +110,8 @@ public value class Stat {
     this.unscaledRadius = unscaledRadius;
     unscaledDiameter = unscaledRadius / 2;
     
-    this.parent = parent;
-    this.children = children;
+    this.parentIndex = parent;
+    this.childrenIndex = children;
   }
   static class Builder{
     private int woodCost = 0;
@@ -127,6 +127,9 @@ public value class Stat {
     private int upgradeHighGradeCost = 0;
     private int upgradeEnergyCost = 0;
     private int upgradeFoodCost = 0;
+    
+    private int parent = -1;
+    private int[] children = null;
     
     private final int supplyCost;
     private final int weightCost;
@@ -149,13 +152,12 @@ public value class Stat {
     private final float unscaledHeight;
     private final float unscaledRadius;
     
-    private final Stat parent;
-    private final Stat[] children;
+    
     
     public Builder(int maxHp, int hpRegeneration, int armor, int speed, int acceleration, int turnSpeed,
                    int turnAcceleration, int damage, int energy, int energyRegeneration, int attackSpeed, int upgradeTime,
                    float unscaledWidth, float unscaledHeight, float unscaledRadius,
-                   int supplyCost, int weightCost, int spaceCost, Stat parent, Stat... children) {
+                   int supplyCost, int weightCost, int spaceCost) {
       this.maxHp = maxHp;
       this.hpRegeneration = hpRegeneration;
       this.armor = armor;
@@ -177,12 +179,9 @@ public value class Stat {
       this.supplyCost = supplyCost;
       this.weightCost = weightCost;
       this.spaceCost = spaceCost;
-      
-      this.parent = parent;
-      this.children = children;
     }
-    public Stat build(){
-      return new Stat(maxHp, hpRegeneration, armor, speed, acceleration, turnSpeed, turnAcceleration,
+    public Upgrade build(){
+      return new Upgrade(maxHp, hpRegeneration, armor, speed, acceleration, turnSpeed, turnAcceleration,
           energy, energyRegeneration, attackSpeed, damage, upgradeTime, supplyCost, weightCost, spaceCost,
           unscaledWidth, unscaledHeight, unscaledRadius,
           woodCost, stoneCost, lowGradeCost, highGradeCost,
@@ -247,6 +246,16 @@ public value class Stat {
     
     public Builder setUpgradeWoodCost(int upgradeWoodCost) {
       this.upgradeWoodCost = upgradeWoodCost;
+      return this;
+    }
+    
+    public Builder setChildren(int... children) {
+      this.children = children;
+      return this;
+    }
+    
+    public Builder setParent(int parent) {
+      this.parent = parent;
       return this;
     }
   }
@@ -407,11 +416,11 @@ public value class Stat {
     return width;
   }
   
-  public Stat[] getChildren() {
-    return children;
+  public int[] getChildren() {
+    return childrenIndex;
   }
   
-  public Stat getParent() {
-    return parent;
+  public int getParent() {
+    return parentIndex;
   }
 }

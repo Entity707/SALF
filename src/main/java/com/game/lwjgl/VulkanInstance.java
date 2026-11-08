@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK14;
@@ -28,7 +29,7 @@ class VulkanInstance {
       
       int result = VK14.vkCreateInstance(createInfo, null, pInstance);
       if (result != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create Vulkan instance. Error code: " + result);
+        LoggerUtil.error("failed to create Vulkan instance. Error code: " + result);
       }
       
       long instanceHandle = pInstance.get(0);

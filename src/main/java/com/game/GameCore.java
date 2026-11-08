@@ -1,17 +1,18 @@
 package com.game;
 
 import com.game.draw.DrawManager;
+import com.game.lwjgl.AudioManager;
 import com.game.lwjgl.LwjglManager;
 import com.game.screens.LoadingScreen;
 import com.game.screens.ReplayScreen;
 import com.game.screens.Screen;
 import com.game.settings.SettingsManager;
-import com.game.sound.SoundManager;
 import com.game.utils.LogType;
 import com.game.utils.LoggerUtil;
 import com.game.utils.PerformanceType;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.reflections.Reflections;
+import org.tinylog.provider.ProviderRegistry;
 import oshi.ffm.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.HardwareAbstractionLayer;
@@ -52,6 +53,10 @@ public class GameCore /*extends Game */ {
   
   
   public GameCore() {
+    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+      LoggerUtil.error(new Exception(throwable));
+    });
+    
     settingsManager = new SettingsManager();
     performanceStorage = new PerformanceStorage();
     hardwarePerformance = new HardwarePerformance();
@@ -166,7 +171,7 @@ public class GameCore /*extends Game */ {
     try {
       method.invoke(null, loadingScreen);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      LoggerUtil.error(e);
     }
     System.out.println(name + " time: " + (System.nanoTime() - startTime) / 1000000d);
   }
@@ -194,7 +199,7 @@ public class GameCore /*extends Game */ {
           Method method = clazz.getMethod("getIncrements");
           total += (int) method.invoke(null);
         } catch (InvocationTargetException | IllegalAccessException e) {
-          throw new RuntimeException(e);
+          LoggerUtil.error(e);
         } catch (NoSuchMethodException e) {
           total += 1;
         }
@@ -224,7 +229,7 @@ public class GameCore /*extends Game */ {
 //
 //            modelNum = (int)fileCount;
 //        } catch (Exception e) {
-//            throw new RuntimeException(e);
+//            LoggerUtil.error(e);
 //        }
 //        System.out.println("model Count: " + modelNum);
     
@@ -233,7 +238,7 @@ public class GameCore /*extends Game */ {
     try {
       Thread.sleep(500);
     } catch (InterruptedException e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
     
     Thread loader = new Thread(() -> {
@@ -244,7 +249,7 @@ public class GameCore /*extends Game */ {
       System.out.println();
       long initTime = System.nanoTime();
       SystemInfo si = new SystemInfo();
-      init(LoggerUtil::init, "loggerUtil", loadingScreen);
+//      init(LoggerUtil::init, "loggerUtil", loadingScreen);
       ExecutorService executor = Executors.newFixedThreadPool(Math.max(si.getHardware().getProcessor().getPhysicalProcessorCount() - 1, 1));
       for (int stage = 0; stage < initClasses.size(); stage++) {
         Set<Class<?>> classes = initClasses.get(stage);
@@ -258,7 +263,7 @@ public class GameCore /*extends Game */ {
               Method method = clazz.getDeclaredMethod("init", LoadingScreen.class);
               init(method, clazz.getSimpleName(), loadingScreen);
             } catch (Exception e) {
-              LoggerUtil.log(e);
+              LoggerUtil.error(e);
             } finally {
               latch.countDown();
             }
@@ -268,7 +273,7 @@ public class GameCore /*extends Game */ {
         try {
           latch.await();
         } catch (InterruptedException e) {
-          LoggerUtil.log(e);
+          LoggerUtil.error(e);
         }
         System.out.println("Stage " + stage + " init in: " + (System.nanoTime() - stageTime) / 1000000d + "\n");
         
@@ -276,17 +281,17 @@ public class GameCore /*extends Game */ {
       executor.shutdown();
       float initTotalTime = (System.nanoTime() - initTime) / 1000000f;
       loadingScreen.addText("done   time: " + initTotalTime);
-      LoggerUtil.log("startup time: " + initTotalTime);
+      LoggerUtil.info("startup time: {}", initTotalTime);
       
-      LoggerUtil.log(LogType.EVENT, "os:", si.getOperatingSystem(), "cpu:", si.getHardware().getProcessor().getProcessorIdentifier().getName(), "gpu:", si.getHardware().getGraphicsCards().getFirst().getName(), "ram:", si.getHardware().getMemory().getTotal());
+      LoggerUtil.info("{} os:{} cpu:{} gpu:{} ram:{}",LogType.EVENT.getString(), si.getOperatingSystem(), si.getHardware().getProcessor().getProcessorIdentifier().getName(), si.getHardware().getGraphicsCards().getFirst().getName(), si.getHardware().getMemory().getTotal());
       System.out.println("total init time: " + initTotalTime);
       try {
         Thread.sleep(500);
       } catch (InterruptedException e) {
-        LoggerUtil.log(e);
+        LoggerUtil.error(e);
       }
       setGameStatus(GameStatus.TITLESCREEN);
-      SoundManager.startBGM();
+      AudioManager.getInstance().startAudioThread();
       logicThread.start();
     });
     loader.start();
@@ -297,7 +302,7 @@ public class GameCore /*extends Game */ {
 //            loader.join();
 //        } catch (InterruptedException e) {
 //
-//            LoggerUtil.log(e);
+//            LoggerUtil.error(e);
 //
 //        }
     
@@ -313,6 +318,11 @@ public class GameCore /*extends Game */ {
     long cleanupStart = System.nanoTime();
     lwjglManager.cleanup();
     System.out.println("cleanup in: " + (System.nanoTime() - cleanupStart) / 1000000f);
+    try {
+      ProviderRegistry.getLoggingProvider().shutdown();
+    } catch (InterruptedException e) {
+      LoggerUtil.error(e);
+    }
   }
   
   public void render() {
@@ -360,8 +370,7 @@ public class GameCore /*extends Game */ {
   
   
   public void dispose() {
-    LoggerUtil.log("close program");
-    LoggerUtil.flush();
+    LoggerUtil.info("close program");
     ReplayScreen.flush();
 //        Gdx.app.exit();
     System.exit(0);
@@ -412,21 +421,20 @@ public class GameCore /*extends Game */ {
     @Override
     public void run() {
       long targetTime = System.nanoTime();
-      int targetFPS = 720;
+      int targetFPS = 0;
       long currentTime;
-      long targetFrameInterval = 0;
+      long targetFrameInterval = 1000000000 / Math.max(targetFPS, 1);
       while (!lwjglManager.shouldClose()) {
 //                targetFPS = settingsManager.getTargetFPS();
         currentTime = System.nanoTime();
-        if (targetFPS > 0) {
-          targetFrameInterval = 1000000000 / targetFPS;
-        }
         if (targetFPS <= 0 || currentTime >= targetTime) {
           performanceStorage.addDrawTimeUsed(currentTime);
           targetTime += targetFrameInterval;
           lwjglManager.pollEvents();
           render();
           performanceStorage.addDFrame();
+        } else {
+          Thread.onSpinWait();
         }
       }
     }
@@ -475,7 +483,7 @@ class PerformanceStorage {
     }
     loggerCooldown--;
     if (loggerCooldown <= 0) {
-      LoggerUtil.log(LogType.PERFORMANCE, "fps:", getFPS(), "dt1%:", getPeakDT(), "dt0.1%:", getPeakPeakDT(), "tps:", getTPS(), "ttu:", getTickTimeUsed(), "ttu1%:", getTickTimeUsedLow(), "late frames:", getLateFrames());
+      LoggerUtil.info("{} fps:{} dt1%:{} dt0.1%:{} tps:{} ttu:{} ttu1%:{} late frames:{}",LogType.PERFORMANCE.getString(), getFPS(), getPeakDT(), getPeakPeakDT(), getTPS(), getTickTimeUsed(), getTickTimeUsedLow(), getLateFrames());
       loggerCooldown = 40;
     }
   }
@@ -605,8 +613,8 @@ class HardwarePerformance {
       prevTicks = cpu.getSystemCpuLoadTicks();
       cpuTemp = (float) sensors.getCpuTemperature();
       lastStatsUpdate = now;
-      LoggerUtil.log(PerformanceType.HARDWARE, "ram total:", ramTotal, "ram unused:", ramUnused, "ram used:", ramUsed, "cpu load:", cpuLoad, "cpuTemp:", cpuTemp);
-      cpuStats = "cpu load:" + String.format("%.2f", cpuLoad * 100) + " cpuTemp:" + String.format("%.2f", cpuTemp);
+      LoggerUtil.info("{} ram total:{} ram unused:{} ram used:{} cpu load:{} cpu temp:{}",PerformanceType.HARDWARE.getString(), ramTotal, ramUnused, ramUsed, cpuLoad, cpuTemp);
+      cpuStats = "cpu load:" + String.format("%.2f", cpuLoad * 100) + " cpuTemp:" + String.format("%.2f", cpuTemp);//TODO: make less trash
       ramStats = "used:" + String.format("%.2f", ramUsed) + " ram unused:" + String.format("%.2f", ramUnused);
     }
     

@@ -2,16 +2,14 @@ package com.game.entity;
 
 
 import com.game.input.InputType;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-public abstract class Entity {
+public value class Entity {
   protected static ObjectArrayList<InputType> validCommandTypes = new ObjectArrayList<>();
-  protected static Int2ObjectOpenHashMap<Enum<?>> playerStats;
+//  protected static Int2ObjectOpenHashMap<Enum<?>> playerStats;
   
-  protected abstract Enum<?> getPlayerStats(int player);
-  
-  public abstract Stat getStat(int player);
+//  protected abstract Enum<?> getPlayerStats(int player);
+//  public abstract Upgrade getStat(int player);
   
 //  public void drawHeathBar(boolean isSnapshot1) {
 ////    if (getTags().contains(Tags.INVULNERABLE)) {

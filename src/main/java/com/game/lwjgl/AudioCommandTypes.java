@@ -1,0 +1,12 @@
+package com.game.lwjgl;
+
+public enum AudioCommandTypes {
+  CHANGE_BGM,
+  PLAY_SOUND,
+  CHANGE_MASTER_VOLUME,
+  CHANGE_SFX_VOLUME,
+  CHANGE_BGM_VOLUME,
+  SET_MASTER_VOLUME,
+  SET_SFX_VOLUME,
+  SET_BGM_VOLUME
+}

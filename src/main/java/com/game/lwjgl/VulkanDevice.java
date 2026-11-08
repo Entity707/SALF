@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.KHRSurface;
@@ -79,7 +80,7 @@ class VulkanDevice {
       int result = VK14.vkCreateDevice(lwjglData.vkPhysicalDevice, createInfo, null, pDevice);
       
       if (result != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create logical device. " + result);
+        LoggerUtil.error("failed to create logical device. " + result);
       }
       
       lwjglData.vkDevice = new VkDevice(pDevice.get(0), lwjglData.vkPhysicalDevice, createInfo);

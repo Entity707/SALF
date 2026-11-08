@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -18,16 +19,16 @@ class GlfwWindow {
   
   static void makeWindow(LwjglData lwjglData) {
     if (!GLFW.glfwInit()) {
-      throw new RuntimeException("unable to initialize GLFW");
+      LoggerUtil.error("unable to initialize GLFW");
     }
     
     if (!GLFWVulkan.glfwVulkanSupported()) {
-      throw new RuntimeException("cannot find a compatible Vulkan installable client driver (ICD)");
+      LoggerUtil.error("cannot find a compatible Vulkan installable client driver (ICD)");
     }
     
     GLFWVidMode vidMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
     if (vidMode == null) {
-      throw new RuntimeException("error getting primary monitor");
+      LoggerUtil.error("error getting primary monitor");
     }
     int width = vidMode.width();
     int height = vidMode.height();
@@ -39,8 +40,9 @@ class GlfwWindow {
     // create the window
     long windowHandle = GLFW.glfwCreateWindow(width, height, "SALF", MemoryUtil.NULL, MemoryUtil.NULL);
     if (windowHandle == MemoryUtil.NULL) {
-      throw new RuntimeException("failed to create the GLFW window");
+      LoggerUtil.error("failed to create the GLFW window");
     }
+    GLFW.glfwSwapInterval(0);
     GLFW.glfwSetFramebufferSizeCallback(windowHandle, (window, w, h) -> {
       lwjglData.windowWidth = w;
       lwjglData.windowHeight = h;
@@ -65,7 +67,7 @@ class GlfwWindow {
       int result = GLFWVulkan.glfwCreateWindowSurface(lwjglData.vkInstance, lwjglData.windowHandle, null, pSurface);
       
       if (result != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create window surface. " + result);
+        LoggerUtil.error("failed to create window surface. " + result);
       }
       
       lwjglData.surface = pSurface.get(0);

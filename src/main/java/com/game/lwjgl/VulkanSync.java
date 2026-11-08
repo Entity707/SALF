@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK14;
 import org.lwjgl.vulkan.VkFenceCreateInfo;
@@ -26,7 +27,7 @@ class VulkanSync {
       for (int i = 0; i < lwjglData.MAX_FRAMES_IN_FLIGHT; i++) {
         if (VK14.vkCreateSemaphore(lwjglData.vkDevice, semaphoreInfo, null, pSem1) != VK14.VK_SUCCESS ||
             VK14.vkCreateFence(lwjglData.vkDevice, fenceInfo, null, pFence) != VK14.VK_SUCCESS) {
-          throw new RuntimeException("failed to create synchronization objects for frame " + i);
+          LoggerUtil.error("failed to create synchronization objects for frame " + i);
         }
         
         lwjglData.imageAvailableSemaphores[i] = pSem1.get(0);
@@ -42,7 +43,7 @@ class VulkanSync {
       lwjglData.renderFinishedSemaphores = new long[lwjglData.swapchainImages.length];
       for (int i = 0; i < lwjglData.renderFinishedSemaphores.length; i++) {
         if (VK14.vkCreateSemaphore(lwjglData.vkDevice, info, null, pointer) != VK14.VK_SUCCESS) {
-          throw new RuntimeException("failed to create render-finished semaphore");
+          LoggerUtil.error("failed to create render-finished semaphore");
         }
         lwjglData.renderFinishedSemaphores[i] = pointer.get(0);
       }

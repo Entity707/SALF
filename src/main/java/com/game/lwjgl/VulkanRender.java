@@ -1,6 +1,7 @@
 package com.game.lwjgl;
 
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.KHRSwapchain;
@@ -51,7 +52,8 @@ class VulkanRender {
         try {
           commandBuffer = future.get();
         } catch (InterruptedException | ExecutionException e) {
-          throw new RuntimeException("render task failed", e);
+          LoggerUtil.error("render task failed", e);
+          return;
         }
         if (commandBuffer != null) secondaries.put(n++, commandBuffer.address());
       }

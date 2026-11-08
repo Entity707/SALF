@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK14;
@@ -21,7 +22,7 @@ class VulkanCommandPool {
           .queueFamilyIndex(lwjglData.graphicsQueueFamilyIndex);
       LongBuffer pointer = stack.mallocLong(1);
       if (VK14.vkCreateCommandPool(lwjglData.vkDevice, info, null, pointer) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create command pool");
+        LoggerUtil.error("failed to create command pool");
       }
       return pointer.get(0);
     }
@@ -36,7 +37,7 @@ class VulkanCommandPool {
           .commandBufferCount(count);
       PointerBuffer pointerBuffer = stack.mallocPointer(count);
       if (VK14.vkAllocateCommandBuffers(lwjglData.vkDevice, allocateInfo, pointerBuffer) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to allocate command buffers");
+        LoggerUtil.error("failed to allocate command buffers");
       }
       VkCommandBuffer[] out = new VkCommandBuffer[count];
       for (int i = 0; i < count; i++) out[i] = new VkCommandBuffer(pointerBuffer.get(i), lwjglData.vkDevice);

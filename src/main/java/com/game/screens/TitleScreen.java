@@ -155,7 +155,7 @@ public class TitleScreen extends Screen {
 //                    JSONObject map = (JSONObject) object;
 //                    replaysName.add((String) map.get("name"));
 //                } catch (IOException | ParseException e) {
-//                    throw new RuntimeException(e);
+//                    LoggerUtil.error(e);
 //                }
 //            }
 //        }

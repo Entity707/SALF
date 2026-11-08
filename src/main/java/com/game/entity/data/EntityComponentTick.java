@@ -1,45 +1,7 @@
-package com.game.entity.unit;
+package com.game.entity.data;
 
-import com.game.entity.Abilities;
-import com.game.entity.Entity;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-public abstract class Unit extends Entity {
-  
-  protected static ObjectArrayList<Abilities> abilities;
-  
-  protected Entity attackTarget;
-  
-  public void drawTarget() {
-//    if (unitState != UnitState.MOVING) {
-//      return;
-//    }
-//    DrawManager.Game.fillCircleScaledCull(targetX - 50000, targetX - 50000, targetY - 50000, targetY - 50000, 100000, 0x00FF00FF);
-  }
-  
-//  @Override
-  public void tick() {
-//    entityPosition.tick();
-//    if (!commands.isEmpty()) {
-//      for (Command command : commands) {
-//        if (command.getInputType() == InputType.MOUSE_RELEASE) {
-//          unitState = UnitState.MOVING;
-//
-//          int ring = (int) StrictMath.sqrt(formationIndex);
-//          int angle = (int) (NumUtil.toScaled(formationIndex * 137.507)) % NumUtil.toScaled(360);
-//          int spreadRadius = getEntityDimension().radiusScaled * ring;
-//          int offsetX = (int) (NumUtil.cos(angle) * spreadRadius);
-//          int offsetY = (int) (NumUtil.sin(angle) * spreadRadius);
-//
-//          targetX = command.getX() - getEntityDimension().halfWidthScaled + offsetX;
-//          targetY = command.getY() - getEntityDimension().halfWidthScaled + offsetY;
-//        }
-//      }
-//    } else {
-//      unitState = UnitState.IDLE;
-//    }
-//
-//    switch (unitState) {
+public class EntityComponentTick {
+//  switch (unitState) {
 //      case MOVING:
 //        int x = entityPosition.x;
 //        int y = entityPosition.y;
@@ -76,5 +38,4 @@ public abstract class Unit extends Entity {
 //        }
 //        break;
 //    }
-  }
 }

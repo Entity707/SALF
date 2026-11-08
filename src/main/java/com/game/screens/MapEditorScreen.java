@@ -73,7 +73,7 @@ public class MapEditorScreen extends Screen/* implements Screen */ {
       Files.createDirectories(Paths.get(directory + "/objects"));
       Files.createDirectories(Paths.get(directory + "/tiles"));
     } catch (IOException e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
 //        JSONObject map = new JSONObject();
 //        map.put("name", directory.substring(directory.lastIndexOf("/") + 1));
@@ -234,7 +234,7 @@ public class MapEditorScreen extends Screen/* implements Screen */ {
 //                e.printStackTrace();
 //            }
 //        } catch (IOException | ParseException e) {
-//            throw new RuntimeException(e);
+//            LoggerUtil.error(e);
 //        }
   }
   
@@ -307,7 +307,7 @@ public class MapEditorScreen extends Screen/* implements Screen */ {
 ////                    JSONObject map = (JSONObject) object;
 ////                    DrawUtil.drawString(button.getRectangle().getX() + button.getRectangle().getWidth() / 2, button.getRectangle().getY() + button.getRectangle().getHeight() / 2, (String) map.get("name"), 20, Fonts.DEFAULT);
 ////                } catch (IOException | ParseException e) {
-////                    throw new RuntimeException(e);
+////                    LoggerUtil.error(e);
 ////                }
 //                continue;
 //            } else if (button == Buttons.HEIGHT_COUNTER) {

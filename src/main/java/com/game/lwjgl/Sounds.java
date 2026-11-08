@@ -1,4 +1,4 @@
-package com.game.sound;
+package com.game.lwjgl;
 
 
 public enum Sounds {

@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.KHRSurface;
@@ -32,7 +33,7 @@ class VulkanSwapchain {
       IntBuffer formatCount = stack.mallocInt(1);
       KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(lwjglData.vkPhysicalDevice, lwjglData.surface, formatCount, null);
       if (formatCount.get(0) == 0) {
-        throw new RuntimeException("failed to find supported surface formats");
+        LoggerUtil.error("failed to find supported surface formats");
       }
       VkSurfaceFormatKHR.Buffer surfaceFormats = VkSurfaceFormatKHR.malloc(formatCount.get(0), stack);
       KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(lwjglData.vkPhysicalDevice, lwjglData.surface, formatCount, surfaceFormats);
@@ -91,7 +92,7 @@ class VulkanSwapchain {
       
       LongBuffer pSwapchain = stack.mallocLong(1);
       if (KHRSwapchain.vkCreateSwapchainKHR(lwjglData.vkDevice, createInfo, null, pSwapchain) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create swapchain");
+        LoggerUtil.error("failed to create swapchain");
       }
       
       lwjglData.swapchain = pSwapchain.get(0);
@@ -132,7 +133,7 @@ class VulkanSwapchain {
       for (int i = 0; i < lwjglData.swapchainImages.length; i++) {
         viewInfo.image(lwjglData.swapchainImages[i]);
         if (VK14.vkCreateImageView(lwjglData.vkDevice, viewInfo, null, pView) != VK14.VK_SUCCESS) {
-          throw new RuntimeException("failed to create image view at index " + i);
+          LoggerUtil.error("failed to create image view at index " + i);
         }
         lwjglData.swapchainImageViews[i] = pView.get(0);
       }

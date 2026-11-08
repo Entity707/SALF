@@ -1,6 +1,7 @@
 package com.game.lwjgl;
 
 
+import com.game.utils.LoggerUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.shaderc.Shaderc;
@@ -57,7 +58,8 @@ class LwjglShaderc {
               "main",
               options);
         } catch (IOException e) {
-          throw new RuntimeException(e);
+          LoggerUtil.error(e);
+          return;
         } finally {
           Shaderc.shaderc_compile_options_release(options);
           Shaderc.shaderc_compiler_release(compiler);
@@ -66,7 +68,7 @@ class LwjglShaderc {
         if (Shaderc.shaderc_result_get_compilation_status(result) != Shaderc.shaderc_compilation_status_success) {
           String errorLog = Shaderc.shaderc_result_get_error_message(result);
           Shaderc.shaderc_result_release(result);
-          throw new RuntimeException("shader compilation failed for " + shader.getName() + ":\n" + errorLog);
+          LoggerUtil.error("shader compilation failed for " + shader.getName() + ":\n" + errorLog);
         }
         
         ByteBuffer spirvBytes = Shaderc.shaderc_result_get_bytes(result);
@@ -77,7 +79,7 @@ class LwjglShaderc {
           LongBuffer pShaderModule = stack.mallocLong(1);
           int shaderModule = VK14.vkCreateShaderModule(lwjglData.vkDevice, createInfo, null, pShaderModule);
           if (shaderModule != VK14.VK_SUCCESS) {
-            throw new RuntimeException("vkCreateShaderModule failed for " + shader.getName() + ": " + shaderModule);
+            LoggerUtil.error("vkCreateShaderModule failed for " + shader.getName() + ": " + shaderModule);
           }
           tempMap.put(shader, pShaderModule.get(0));
         } finally {
@@ -93,7 +95,7 @@ class LwjglShaderc {
       }
     } catch (Exception e) {
       executorService.shutdownNow();
-      throw new RuntimeException("shader compilation failed ", e);
+      LoggerUtil.error("shader compilation failed ", e);
     } finally {
       Shaderc.shaderc_compile_options_release(baseOptions);
     }

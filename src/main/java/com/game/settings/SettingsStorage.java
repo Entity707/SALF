@@ -22,7 +22,7 @@ public class SettingsStorage {
     try {
       objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File("resources/settings.json"), root);
     } catch (Exception e) {
-      LoggerUtil.log(e);
+      LoggerUtil.error(e);
     }
   }
 }

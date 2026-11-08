@@ -1,5 +1,6 @@
 package com.game.lwjgl;
 
+import com.game.utils.LoggerUtil;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK14;
 import org.lwjgl.vulkan.VkDescriptorImageInfo;
@@ -54,7 +55,7 @@ class VulkanDescriptors {
       
       long[] pDescriptorSetLayout = new long[1];
       if (VK14.vkCreateDescriptorSetLayout(lwjglData.vkDevice, layoutCreateInfo, null, pDescriptorSetLayout) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create collision compute descriptor set layout");
+        LoggerUtil.error("failed to create collision compute descriptor set layout");
       }
       
       return pDescriptorSetLayout[0];
@@ -72,7 +73,7 @@ class VulkanDescriptors {
           .sType$Default().pBindings(buffer);
       long[] out = new long[1];
       if (VK14.vkCreateDescriptorSetLayout(lwjglData.vkDevice, info, null, out) != VK14.VK_SUCCESS)
-        throw new RuntimeException("failed to create 2D descriptor set layout");
+        LoggerUtil.error("failed to create 2D descriptor set layout");
       return out[0];
     }
   }
@@ -88,7 +89,7 @@ class VulkanDescriptors {
           .maxSets(1);
       LongBuffer pPool = stack.mallocLong(1);
       if (VK14.vkCreateDescriptorPool(lwjglData.vkDevice, poolInfo, null, pPool) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to create descriptor pool");
+        LoggerUtil.error("failed to create descriptor pool");
       }
       lwjglData.descriptorPool = pPool.get(0);
       
@@ -98,7 +99,7 @@ class VulkanDescriptors {
           .pSetLayouts(stack.longs(lwjglData.descriptorSetLayout2D));
       LongBuffer pSet = stack.mallocLong(1);
       if (VK14.vkAllocateDescriptorSets(lwjglData.vkDevice, allocInfo, pSet) != VK14.VK_SUCCESS) {
-        throw new RuntimeException("failed to allocate descriptor set");
+        LoggerUtil.error("failed to allocate descriptor set");
       }
       lwjglData.descriptorSet = pSet.get(0);
       
