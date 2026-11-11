@@ -3,20 +3,16 @@ package com.game;
 import com.game.draw.DrawManager;
 import com.game.lwjgl.AudioManager;
 import com.game.lwjgl.LwjglManager;
+import com.game.performance.SystemMonitor;
 import com.game.screens.LoadingScreen;
 import com.game.screens.ReplayScreen;
 import com.game.screens.Screen;
 import com.game.settings.SettingsManager;
-import com.game.utils.LogType;
 import com.game.utils.LoggerUtil;
-import com.game.utils.PerformanceType;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.reflections.Reflections;
 import org.tinylog.provider.ProviderRegistry;
 import oshi.ffm.SystemInfo;
-import oshi.hardware.CentralProcessor;
-import oshi.hardware.HardwareAbstractionLayer;
-import oshi.hardware.Sensors;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,7 +23,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
@@ -48,9 +43,6 @@ public class GameCore /*extends Game */ {
   
   private final SettingsManager settingsManager;
   
-  private final PerformanceStorage performanceStorage;
-  private final HardwarePerformance hardwarePerformance;
-  
   
   public GameCore() {
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
@@ -58,8 +50,6 @@ public class GameCore /*extends Game */ {
     });
     
     settingsManager = new SettingsManager();
-    performanceStorage = new PerformanceStorage();
-    hardwarePerformance = new HardwarePerformance();
 //        System.out.println(NumUtil.toUnscaledFloat(NumUtil.sqrtFastScaled(NumUtil.toScaled(48291753))));//should be 6949 ish
   }
   
@@ -216,8 +206,8 @@ public class GameCore /*extends Game */ {
     lwjglManager = new LwjglManager();
     System.out.println("init Vulkan: " + (System.nanoTime() - startTime) / 1000000d);
     DrawManager.setWindow(lwjglManager.getWindowHandle());
-    logicThread = new Thread(new logicThread(performanceStorage));
-    drawThread = new Thread(new drawThread(performanceStorage));
+    logicThread = new Thread(new logicThread());
+    drawThread = new Thread(new drawThread());
     
     ObjectArrayList<Set<Class<?>>> initClasses = findInitClasses();
 
@@ -282,8 +272,6 @@ public class GameCore /*extends Game */ {
       float initTotalTime = (System.nanoTime() - initTime) / 1000000f;
       loadingScreen.addText("done   time: " + initTotalTime);
       LoggerUtil.info("startup time: {}", initTotalTime);
-      
-      LoggerUtil.info("{} os:{} cpu:{} gpu:{} ram:{}",LogType.EVENT.getString(), si.getOperatingSystem(), si.getHardware().getProcessor().getProcessorIdentifier().getName(), si.getHardware().getGraphicsCards().getFirst().getName(), si.getHardware().getMemory().getTotal());
       System.out.println("total init time: " + initTotalTime);
       try {
         Thread.sleep(500);
@@ -317,6 +305,7 @@ public class GameCore /*extends Game */ {
 //        }
     long cleanupStart = System.nanoTime();
     lwjglManager.cleanup();
+    SystemMonitor.cleanup();
     System.out.println("cleanup in: " + (System.nanoTime() - cleanupStart) / 1000000f);
     try {
       ProviderRegistry.getLoggingProvider().shutdown();
@@ -365,7 +354,7 @@ public class GameCore /*extends Game */ {
 //        DrawUtil.stopRender();
 //        fpsLogger.log();
     lwjglManager.render();
-    performanceStorage.addDrawTimeUsed(startTime);
+//    performanceStorage.addDrawTimeUsed(startTime);
   }
   
   
@@ -378,11 +367,6 @@ public class GameCore /*extends Game */ {
   
   
   class logicThread implements Runnable {
-    PerformanceStorage performanceStorage;
-    
-    public logicThread(PerformanceStorage performanceStorage) {
-      this.performanceStorage = performanceStorage;
-    }
     
     @Override
     public void run() {
@@ -398,25 +382,18 @@ public class GameCore /*extends Game */ {
             targetTime = currentTime;
           }
           if (currentTime > tickStartTarget + targetFrameInterval) {
-            performanceStorage.addLateFrame();
+//            performanceStorage.addLateFrame();
           }
           
           tick();
-          performanceStorage.addTFrame();
-          performanceStorage.addTickTimeUsed(currentTime);
-          hardwarePerformance.tick();
+//          performanceStorage.addTFrame();
+//          performanceStorage.addTickTimeUsed(currentTime);
         }
       }
     }
   }
   
   class drawThread implements Runnable {
-    PerformanceStorage performanceStorage;
-    
-    
-    public drawThread(PerformanceStorage performanceStorage) {
-      this.performanceStorage = performanceStorage;
-    }
     
     @Override
     public void run() {
@@ -428,11 +405,11 @@ public class GameCore /*extends Game */ {
 //                targetFPS = settingsManager.getTargetFPS();
         currentTime = System.nanoTime();
         if (targetFPS <= 0 || currentTime >= targetTime) {
-          performanceStorage.addDrawTimeUsed(currentTime);
+//          performanceStorage.addDrawTimeUsed(currentTime);
           targetTime += targetFrameInterval;
           lwjglManager.pollEvents();
           render();
-          performanceStorage.addDFrame();
+//          performanceStorage.addDFrame();
         } else {
           Thread.onSpinWait();
         }
@@ -442,183 +419,129 @@ public class GameCore /*extends Game */ {
 }
 
 
-class PerformanceStorage {
-  private final AtomicInteger dFrameCount = new AtomicInteger(0);
-  private final AtomicInteger tFrameCount = new AtomicInteger(0);
-  private final double[] ttuHistory = new double[100];
-  private final double[] dtHistory = new double[1000];
-  private final AtomicInteger lateFrames = new AtomicInteger(0);
-  private double currentFPS = 0;
-  private double currentTPS = 0;
-  private long lastFPSUpdate = System.nanoTime();
-  private long lastTPSUpdate = System.nanoTime();
-  private volatile double currentTTU = 0;
-  private volatile double peakTTU = 0;
-  private int ttuIndex = 0;
-  private int ttuCount = 0;
-  private int dtIndex = 0;
-  private int dtCount = 0;
-  private volatile double peakDT = 0;
-  private volatile double peakPeakDT = 0;
-  private int loggerCooldown = 20;
-  
-  public void addDFrame() {
-    dFrameCount.incrementAndGet();
-    long now = System.nanoTime();
-    long delta = now - lastFPSUpdate;
-    
-    if (delta >= 500000000L) {
-      this.currentFPS = (dFrameCount.getAndSet(0) / (delta / 500000000d)) * 2;
-      lastFPSUpdate = now;
-    }
-  }
-  
-  public void addTFrame() {
-    tFrameCount.incrementAndGet();
-    long now = System.nanoTime();
-    long delta = now - lastTPSUpdate;
-    if (delta >= 500000000L) {
-      currentTPS = (tFrameCount.getAndSet(0) / (delta / 500000000d)) * 2;
-      lastTPSUpdate = now;
-    }
-    loggerCooldown--;
-    if (loggerCooldown <= 0) {
-      LoggerUtil.info("{} fps:{} dt1%:{} dt0.1%:{} tps:{} ttu:{} ttu1%:{} late frames:{}",LogType.PERFORMANCE.getString(), getFPS(), getPeakDT(), getPeakPeakDT(), getTPS(), getTickTimeUsed(), getTickTimeUsedLow(), getLateFrames());
-      loggerCooldown = 40;
-    }
-  }
-  
-  public double getFPS() {
-    return currentFPS;
-  }
-  
-  public double getTPS() {
-    return currentTPS;
-  }
-  
-  public void addTickTimeUsed(long startNano) {
-    long duration = System.nanoTime() - startNano;
-    double percent = (duration / 50000000.0) * 100.0;
-    this.currentTTU = percent;
-    synchronized (ttuHistory) {
-      ttuHistory[ttuIndex] = percent;
-      ttuIndex = (ttuIndex + 1) % 100;
-      if (ttuCount < 100) ttuCount++;
-      double max = 0;
-      for (int i = 0; i < ttuCount; i++) {
-        if (ttuHistory[i] > max) max = ttuHistory[i];
-      }
-      this.peakTTU = max;
-    }
-    
-    synchronized (dtHistory) {
-      if (dtCount > 0) {
-        double[] sortedCopy = new double[dtCount];
-        System.arraycopy(dtHistory, 0, sortedCopy, 0, dtCount);
-        java.util.Arrays.sort(sortedCopy);
-        
-        int limit1 = StrictMath.max(1, (int) StrictMath.round(dtCount / 100.0));
-        double sum1 = 0;
-        for (int i = dtCount - 1; i >= dtCount - limit1; i--) {
-          sum1 += sortedCopy[i];
-        }
-        this.peakDT = sum1 / limit1;
-        
-        int limit01 = StrictMath.max(1, (int) StrictMath.round(dtCount / 1000.0));
-        double sum01 = 0;
-        for (int i = dtCount - 1; i >= dtCount - limit01; i--) {
-          sum01 += sortedCopy[i];
-        }
-        this.peakPeakDT = sum01 / limit01;
-      }
-    }
-  }
-  
-  public double getTickTimeUsed() {
-    return currentTTU;
-  }
-  
-  public double getTickTimeUsedLow() {
-    return peakTTU;
-  }
-  
-  public void addDrawTimeUsed(long startNano) {
-    double dt = (double) (System.nanoTime() - startNano);
-    synchronized (dtHistory) {
-      dtHistory[dtIndex] = dt;
-      dtIndex = (dtIndex + 1) % 1000;
-      if (dtCount < 1000) dtCount++;
-    }
-  }
-  
-  public double getPeakDT() {
-    return 1_000_000_000.0 / peakDT;
-  }
-  
-  public double getPeakPeakDT() {
-    return 1_000_000_000.0 / peakPeakDT;
-  }
-  
-  public void addLateFrame() {
-    lateFrames.incrementAndGet();
-  }
-  
-  public int getLateFrames() {
-    return lateFrames.get();
-  }
-}
-
-class HardwarePerformance {
-  SystemInfo si = new SystemInfo();
-  HardwareAbstractionLayer hal = si.getHardware();
-  Sensors sensors = hal.getSensors();
-  CentralProcessor cpu = hal.getProcessor();
-  
-  
-  private float cpuLoad;
-  private float cpuTemp;
-  private String cpuStats = "";
-  private String ramStats = "";
-  
-  public synchronized String getCpuStats() {
-    return cpuStats;
-  }
-  
-  public synchronized String getRamStats() {
-    return ramStats;
-  }
-  
-  private final String cpuName;
-  private long[] prevTicks = cpu.getSystemCpuLoadTicks();
-  
-  private float ramTotal;
-  private float ramUnused;
-  private float ramUsed;
-  
-  public HardwarePerformance() {
-    cpuName = cpu.getProcessorIdentifier().getName();
-  }
-  
-  private long lastStatsUpdate = System.nanoTime();
-  
-  public synchronized void tick() {
-    long now = System.nanoTime();
-    long delta = now - lastStatsUpdate;
-    
-    if (delta >= 4000000000L) {
-      ramTotal = (float) (hal.getMemory().getTotal() / 1073741824d);
-      ramUnused = (float) (hal.getMemory().getAvailable() / 1073741824d);
-      ramUsed = (float) (si.getOperatingSystem().getProcess(si.getOperatingSystem().getProcessId()).getResidentMemory() / 1073741824d);
-      cpuLoad = (float) cpu.getSystemCpuLoadBetweenTicks(prevTicks);
-      prevTicks = cpu.getSystemCpuLoadTicks();
-      cpuTemp = (float) sensors.getCpuTemperature();
-      lastStatsUpdate = now;
-      LoggerUtil.info("{} ram total:{} ram unused:{} ram used:{} cpu load:{} cpu temp:{}",PerformanceType.HARDWARE.getString(), ramTotal, ramUnused, ramUsed, cpuLoad, cpuTemp);
-      cpuStats = "cpu load:" + String.format("%.2f", cpuLoad * 100) + " cpuTemp:" + String.format("%.2f", cpuTemp);//TODO: make less trash
-      ramStats = "used:" + String.format("%.2f", ramUsed) + " ram unused:" + String.format("%.2f", ramUnused);
-    }
-    
-  }
-  
-  
-}
+//class PerformanceStorage {
+//  private final AtomicInteger dFrameCount = new AtomicInteger(0);
+//  private final AtomicInteger tFrameCount = new AtomicInteger(0);
+//  private final double[] ttuHistory = new double[100];
+//  private final double[] dtHistory = new double[1000];
+//  private final AtomicInteger lateFrames = new AtomicInteger(0);
+//  private double currentFPS = 0;
+//  private double currentTPS = 0;
+//  private long lastFPSUpdate = System.nanoTime();
+//  private long lastTPSUpdate = System.nanoTime();
+//  private volatile double currentTTU = 0;
+//  private volatile double peakTTU = 0;
+//  private int ttuIndex = 0;
+//  private int ttuCount = 0;
+//  private int dtIndex = 0;
+//  private int dtCount = 0;
+//  private volatile double peakDT = 0;
+//  private volatile double peakPeakDT = 0;
+//  private int loggerCooldown = 20;
+//
+//  public void addDFrame() {
+//    dFrameCount.incrementAndGet();
+//    long now = System.nanoTime();
+//    long delta = now - lastFPSUpdate;
+//
+//    if (delta >= 500000000L) {
+//      this.currentFPS = (dFrameCount.getAndSet(0) / (delta / 500000000d)) * 2;
+//      lastFPSUpdate = now;
+//    }
+//  }
+//
+//  public void addTFrame() {
+//    tFrameCount.incrementAndGet();
+//    long now = System.nanoTime();
+//    long delta = now - lastTPSUpdate;
+//    if (delta >= 500000000L) {
+//      currentTPS = (tFrameCount.getAndSet(0) / (delta / 500000000d)) * 2;
+//      lastTPSUpdate = now;
+//    }
+//    loggerCooldown--;
+//    if (loggerCooldown <= 0) {
+//      LoggerUtil.info("{} fps:{} dt1%:{} dt0.1%:{} tps:{} ttu:{} ttu1%:{} late frames:{}",LogType.PERFORMANCE.getString(), getFPS(), getPeakDT(), getPeakPeakDT(), getTPS(), getTickTimeUsed(), getTickTimeUsedLow(), getLateFrames());
+//      loggerCooldown = 40;
+//    }
+//  }
+//
+//  public double getFPS() {
+//    return currentFPS;
+//  }
+//
+//  public double getTPS() {
+//    return currentTPS;
+//  }
+//
+//  public void addTickTimeUsed(long startNano) {
+//    long duration = System.nanoTime() - startNano;
+//    double percent = (duration / 50000000.0) * 100.0;
+//    this.currentTTU = percent;
+//    synchronized (ttuHistory) {
+//      ttuHistory[ttuIndex] = percent;
+//      ttuIndex = (ttuIndex + 1) % 100;
+//      if (ttuCount < 100) ttuCount++;
+//      double max = 0;
+//      for (int i = 0; i < ttuCount; i++) {
+//        if (ttuHistory[i] > max) max = ttuHistory[i];
+//      }
+//      this.peakTTU = max;
+//    }
+//
+//    synchronized (dtHistory) {
+//      if (dtCount > 0) {
+//        double[] sortedCopy = new double[dtCount];
+//        System.arraycopy(dtHistory, 0, sortedCopy, 0, dtCount);
+//        java.util.Arrays.sort(sortedCopy);
+//
+//        int limit1 = StrictMath.max(1, (int) StrictMath.round(dtCount / 100.0));
+//        double sum1 = 0;
+//        for (int i = dtCount - 1; i >= dtCount - limit1; i--) {
+//          sum1 += sortedCopy[i];
+//        }
+//        this.peakDT = sum1 / limit1;
+//
+//        int limit01 = StrictMath.max(1, (int) StrictMath.round(dtCount / 1000.0));
+//        double sum01 = 0;
+//        for (int i = dtCount - 1; i >= dtCount - limit01; i--) {
+//          sum01 += sortedCopy[i];
+//        }
+//        this.peakPeakDT = sum01 / limit01;
+//      }
+//    }
+//  }
+//
+//  public double getTickTimeUsed() {
+//    return currentTTU;
+//  }
+//
+//  public double getTickTimeUsedLow() {
+//    return peakTTU;
+//  }
+//
+//  public void addDrawTimeUsed(long startNano) {
+//    double dt = (double) (System.nanoTime() - startNano);
+//    synchronized (dtHistory) {
+//      dtHistory[dtIndex] = dt;
+//      dtIndex = (dtIndex + 1) % 1000;
+//      if (dtCount < 1000) dtCount++;
+//    }
+//  }
+//
+//  public double getPeakDT() {
+//    return 1_000_000_000.0 / peakDT;
+//  }
+//
+//  public double getPeakPeakDT() {
+//    return 1_000_000_000.0 / peakPeakDT;
+//  }
+//
+//  public void addLateFrame() {
+//    lateFrames.incrementAndGet();
+//  }
+//
+//  public int getLateFrames() {
+//    return lateFrames.get();
+//  }
+//}
+//
