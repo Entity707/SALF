@@ -4,7 +4,7 @@ import com.game.Init;
 import com.game.screens.LoadingScreen;
 import tools.jackson.databind.ObjectMapper;
 
-@Init(stage = 0)
+@Init(stage = 1)
 public class JsonUtil {
   private JsonUtil() {}
   

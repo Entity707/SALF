@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectFunction;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
-@Init(stage = 2)
+@Init(stage = 3)
 public class UIBufferSnapshot {
   static Char2IntOpenHashMap charBits;//TODO:generate this on startup
   static Object2ObjectOpenHashMap<String, int[]> stringHashMap;

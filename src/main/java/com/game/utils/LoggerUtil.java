@@ -38,7 +38,7 @@ public class LoggerUtil {
   }
   
   public static void error(String message, Exception e){
-    Logger.error(message, e);
+    Logger.error(e, message);
     throwError(e);
   }
   public static void throwError(Exception e) {

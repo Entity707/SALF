@@ -3,7 +3,8 @@ package com.game;
 import com.game.draw.DrawManager;
 import com.game.lwjgl.AudioManager;
 import com.game.lwjgl.LwjglManager;
-import com.game.performance.SystemMonitor;
+import com.game.profilers.PerformanceTracker;
+import com.game.profilers.SystemMonitor;
 import com.game.screens.LoadingScreen;
 import com.game.screens.ReplayScreen;
 import com.game.screens.Screen;
@@ -23,13 +24,10 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 
 public class GameCore /*extends Game */ {
-  
-  private volatile AtomicLong lastTickTime = new AtomicLong(System.nanoTime());
   private GameStatus gameStatus = GameStatus.START_LOADING;
   
   
@@ -75,7 +73,7 @@ public class GameCore /*extends Game */ {
   }
   
   public void tick() {
-//    long startTime = System.nanoTime();
+    long startTime = System.nanoTime();
 //    lwjglManager.refreshInputs();
 //    switch (gameStatus) {
 //      case GAME_LOADING:
@@ -145,6 +143,8 @@ public class GameCore /*extends Game */ {
 //      }
 //    }
 //    lastTickTime.set(startTime);
+    long endTime = System.nanoTime();
+    PerformanceTracker.getInstance().submitTickData(new PerformanceTracker.TickData(startTime, endTime, 0, 0, 0, 0));
   }
   
   
@@ -231,42 +231,20 @@ public class GameCore /*extends Game */ {
       LoggerUtil.error(e);
     }
     
+    ExecutorService executor = Executors.newFixedThreadPool(Math.max(new SystemInfo().getHardware().getProcessor().getPhysicalProcessorCount() - 1, 1));
+    initStage(0, executor, initClasses);
+    
     Thread loader = new Thread(() -> {
       
-      for (int i = 0; i < initClasses.size(); i++) {
+      for (int i = 1; i < initClasses.size(); i++) {
         System.out.println("Stage " + i + " contains: " + initClasses.get(i).size() + " classes.");
       }
       System.out.println();
       long initTime = System.nanoTime();
-      SystemInfo si = new SystemInfo();
 //      init(LoggerUtil::init, "loggerUtil", loadingScreen);
-      ExecutorService executor = Executors.newFixedThreadPool(Math.max(si.getHardware().getProcessor().getPhysicalProcessorCount() - 1, 1));
+      
       for (int stage = 0; stage < initClasses.size(); stage++) {
-        Set<Class<?>> classes = initClasses.get(stage);
-        if (classes.isEmpty()) continue;
-        long stageTime = System.nanoTime();
-        System.out.println("Stage " + stage + " init starting");
-        CountDownLatch latch = new CountDownLatch(classes.size());
-        for (Class<?> clazz : classes) {
-          executor.submit(() -> {
-            try {
-              Method method = clazz.getDeclaredMethod("init", LoadingScreen.class);
-              init(method, clazz.getSimpleName(), loadingScreen);
-            } catch (Exception e) {
-              LoggerUtil.error(e);
-            } finally {
-              latch.countDown();
-            }
-          });
-        }
-        
-        try {
-          latch.await();
-        } catch (InterruptedException e) {
-          LoggerUtil.error(e);
-        }
-        System.out.println("Stage " + stage + " init in: " + (System.nanoTime() - stageTime) / 1000000d + "\n");
-        
+        initStage(stage, executor, initClasses);
       }
       executor.shutdown();
       float initTotalTime = (System.nanoTime() - initTime) / 1000000f;
@@ -314,6 +292,33 @@ public class GameCore /*extends Game */ {
     }
   }
   
+  private void initStage(int stage, ExecutorService executor, ObjectArrayList<Set<Class<?>>> initClasses) {
+    Set<Class<?>> classes = initClasses.get(stage);
+    if (classes.isEmpty()) return;
+    long stageTime = System.nanoTime();
+    System.out.println("Stage " + stage + " init starting");
+    CountDownLatch latch = new CountDownLatch(classes.size());
+    for (Class<?> clazz : classes) {
+      executor.submit(() -> {
+        try {
+          Method method = clazz.getDeclaredMethod("init", LoadingScreen.class);
+          init(method, clazz.getSimpleName(), loadingScreen);
+        } catch (Exception e) {
+          LoggerUtil.error(e);
+        } finally {
+          latch.countDown();
+        }
+      });
+    }
+    
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+      LoggerUtil.error(e);
+    }
+    System.out.println("Stage " + stage + " init in: " + (System.nanoTime() - stageTime) / 1000000d + "\n");
+  }
+  
   public void render() {
     long startTime = System.nanoTime();
     DrawManager.render();
@@ -354,7 +359,8 @@ public class GameCore /*extends Game */ {
 //        DrawUtil.stopRender();
 //        fpsLogger.log();
     lwjglManager.render();
-//    performanceStorage.addDrawTimeUsed(startTime);
+    long endTime = System.nanoTime();
+    PerformanceTracker.getInstance().submitFrameData(new PerformanceTracker.FrameData(startTime, endTime));
   }
   
   
@@ -398,10 +404,11 @@ public class GameCore /*extends Game */ {
     @Override
     public void run() {
       long targetTime = System.nanoTime();
-      int targetFPS = 0;
+      int targetFPS = 60;
       long currentTime;
       long targetFrameInterval = 1000000000 / Math.max(targetFPS, 1);
       while (!lwjglManager.shouldClose()) {
+        PerformanceTracker.getInstance().setTargetFps(targetFPS);
 //                targetFPS = settingsManager.getTargetFPS();
         currentTime = System.nanoTime();
         if (targetFPS <= 0 || currentTime >= targetTime) {

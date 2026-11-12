@@ -15,7 +15,7 @@ import tools.jackson.databind.node.ObjectNode;
 
 import java.io.File;
 
-@Init(stage = 1)
+@Init(stage = 2)
 public class SettingsManager {
   
   private static Object2ObjectOpenHashMap<SettingSections, Object2ObjectOpenHashMap<Settings, Setting<?>>> settingMap;

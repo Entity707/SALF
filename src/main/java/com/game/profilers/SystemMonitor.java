@@ -1,4 +1,4 @@
-package com.game.performance;
+package com.game.profilers;
 
 import com.game.Init;
 import com.game.screens.LoadingScreen;
@@ -12,7 +12,7 @@ import oshi.hardware.HardwareAbstractionLayer;
 import oshi.hardware.Sensors;
 import oshi.software.os.OSProcess;
 
-@Init(stage = 0)
+@Init(stage = 1)
 public class SystemMonitor {
   private static Thread thread;
   private volatile static SystemStats systemStats;
@@ -76,7 +76,7 @@ public class SystemMonitor {
               PerformanceType.HARDWARE.getString(), stats.ramTotal, stats.ramUnused, stats.ramUsed, stats.ramHeap, stats.ramUsedTotal,
               stats.cpuUsage, stats.cpuTemp);
           logCounter = 0;
-        }
+        }//TODO: log if there is a spike in a metric maybe
       } catch (Exception e) {
         LoggerUtil.error(e);
         try {

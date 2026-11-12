@@ -6,7 +6,7 @@ import com.game.screens.LoadingScreen;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-@Init(stage = 0)
+@Init(stage = 1)
 public class RandomUtil {
   static RandomGenerator rng;
   

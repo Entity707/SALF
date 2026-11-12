@@ -4,7 +4,7 @@ import com.game.Init;
 import com.game.screens.LoadingScreen;
 
 
-@Init(stage = 0)
+@Init(stage = 1)
 public class NumUtil {
   private NumUtil() {}
   //22.10 system

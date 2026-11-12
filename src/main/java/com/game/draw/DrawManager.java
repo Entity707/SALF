@@ -9,7 +9,7 @@ import com.game.utils.ModelLoaderUtil;
 import static com.game.utils.NumUtil.toScaled;
 
 
-@Init(stage = 1)
+@Init(stage = 2)
 public class DrawManager {
   private static long window;
   

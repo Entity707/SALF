@@ -3,7 +3,7 @@ package com.game.input;
 import com.game.Init;
 import com.game.screens.LoadingScreen;
 
-@Init(stage = 1)
+@Init(stage = 2)
 public enum Keys {
   A("a", KeyType.LETTER, 65),
   B("b", KeyType.LETTER, 66),

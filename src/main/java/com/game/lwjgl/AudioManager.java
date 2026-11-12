@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-@Init(stage=1)
+@Init(stage=2)
 public class AudioManager {
   private static AudioManager instance;
   private AudioData audioData;
