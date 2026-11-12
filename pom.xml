@@ -12,6 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lwjgl.version>3.4.3</lwjgl.version>
+        <java.version>28</java.version>
     </properties>
 
 
