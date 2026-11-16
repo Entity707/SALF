@@ -1,0 +1,68 @@
+name: C/C++ CI
+
+on: [push, pull_request]
+
+jobs:
+
+  # compile with mingw gcc cross
+  build-mingw-cross:
+
+    runs-on: ubuntu-latest
+    name: Build v3 C tests with MinGW gcc cross
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y build-essential
+            sudo apt-get install -y mingw-w64
+            cd tests
+            x86_64-w64-mingw32-gcc -I../ -std=c11 -DTINYGLTF3_ENABLE_FS -o tester_v3_c.exe tester_v3_c.c ../tiny_gltf_v3.c
+
+  # Windows(x64) + MSVC build (VS version agnostic: msvc-dev-cmd locates
+  # whatever Visual Studio the runner image ships, e.g. VS2022 or VS2026)
+  build-windows-msvc:
+
+    runs-on: windows-latest
+    name: Build v3 C tests on Windows(x64, MSVC)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Configure
+        run: cmake -B build -G Ninja -DTINYGLTF3_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+
+  build-linux:
+
+    runs-on: ubuntu-latest
+    name: Build v3 C tests with gcc
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: build
+      run: |
+        cd tests
+        cc -I../ -std=c11 -g -O0 -DTINYGLTF3_ENABLE_FS -o tester_v3_c tester_v3_c.c ../tiny_gltf_v3.c
+    - name: test
+      run: |
+        ./tests/tester_v3_c models/Cube/Cube.gltf
+
+    - name: tests
+      run: |
+        cd tests
+        make all
+        ./tester_v3_c
+        ./tester_v3_c_v1port
+        ./tester_v3_json_c
+        ./tester_v3_freestanding
+        cd ..

@@ -1,0 +1,53 @@
+name: MSYS2 MinGW-w64 Windows 64bit Build
+
+on:
+  push:
+    branches:
+      - release
+      - devel
+    paths:
+    - 'tiny_gltf.*'
+    - 'tinygltf_json_c.h'
+    - 'CMakeLists.txt'
+    - 'meson.build'
+    - 'meson_options.txt'
+    - 'tests/tester_v3*.c'
+    - '.github/workflows/mingw-w64-msys2.yml'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  mingw-w64-msys2-build:
+    name: MSYS2 MinGW-w64 Windows Build
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install core & build dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: base-devel
+          pacboy: >-
+            cc:p cmake:p ninja:p
+          update: true
+          release: false
+
+      - name: Configure
+        run: |
+          cmake \
+            -G"Ninja" \
+            -S . \
+            -B build \
+            -DTINYGLTF3_BUILD_TESTS=ON
+
+      - name: Build
+        run: |
+          cmake --build build
+
+      - name: Run tests
+        run: |
+          ctest --test-dir build --output-on-failure

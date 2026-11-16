@@ -1,0 +1,8 @@
+vulkan https://vulkan.lunarg.com/sdk/home
+glfw https://github.com/glfw/glfw/releases
+vk-bootstrap https://github.com/charles-lunarg/vk-bootstrap/releases
+nlohmann_json https://github.com/nlohmann/json/releases
+tinygltf https://github.com/syoyo/tinygltf/releases
+hwinfo https://github.com/lfreist/hwinfo/releases
+quill https://github.com/odygrd/quill/releases
+miniaudio https://github.com/mackron/miniaudio/releases

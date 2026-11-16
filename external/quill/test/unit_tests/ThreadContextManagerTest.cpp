@@ -1,0 +1,208 @@
+#include "doctest/doctest.h"
+
+#include "quill/backend/ThreadUtilities.h"
+#include "quill/core/FrontendOptions.h"
+#include "quill/core/ThreadContextManager.h"
+#include <array>
+#include <thread>
+
+TEST_SUITE_BEGIN("ThreadContextManager");
+
+using namespace quill;
+using namespace quill::detail;
+
+/***/
+TEST_CASE("add_and_remove_thread_contexts")
+{
+  // 1) Test that every time a new thread context is added to the thread context shared collection
+  // and to the thread context cache when a new thread spawns and we load the cache
+  // 2) Test that the thread context is invalidated when the thread that created it completes
+  // 3) Test that when the threads complete they are removed
+
+  constexpr uint32_t tries = 4;
+  for (uint32_t k = 0; k < tries; ++k)
+  {
+    constexpr size_t num_threads{25};
+    std::array<std::thread, num_threads> threads;
+    std::array<std::atomic<bool>, num_threads> terminate_flag{};
+    std::fill(terminate_flag.begin(), terminate_flag.end(), false);
+
+    std::atomic<uint32_t> threads_started{0};
+
+    // spawn x number of threads
+    for (size_t i = 0; i < threads.size(); ++i)
+    {
+      auto& thread_terminate_flag = terminate_flag[i];
+      threads[i] = std::thread(
+        [&thread_terminate_flag, &threads_started]()
+        {
+          // create a context for that thread
+          ThreadContext* tc = get_local_thread_context<FrontendOptions>();
+
+          REQUIRE(tc->has_unbounded_queue_type());
+          REQUIRE(tc->has_blocking_queue());
+
+          REQUIRE_FALSE(tc->has_bounded_queue_type());
+          REQUIRE_FALSE(tc->has_dropping_queue());
+
+          threads_started.fetch_add(1);
+          while (!thread_terminate_flag.load())
+          {
+            // loop waiting for main to signal
+            std::this_thread::sleep_for(std::chrono::milliseconds{1});
+          }
+        });
+    }
+
+    // main wait for all of them to start
+    while (threads_started.load() < num_threads)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds{1});
+    }
+
+    // Check we have exactly as many thread contexts as the amount of threads in our backend cache
+    uint64_t thread_ctx_cnt{0};
+
+    // Check all thread contexts in the backend thread contexts cache
+    ThreadContextManager::instance().for_each_thread_context(
+      [&thread_ctx_cnt](ThreadContext const* tc)
+      {
+        REQUIRE(tc->is_valid());
+        REQUIRE(tc->get_spsc_queue<FrontendOptions::queue_type>().empty());
+        ++thread_ctx_cnt;
+      });
+
+    REQUIRE_EQ(thread_ctx_cnt, num_threads);
+    REQUIRE_FALSE(ThreadContextManager::instance().has_invalid_thread_context());
+
+    // terminate all threads - This will invalidate all the thread contexts
+    for (size_t j = 0; j < threads.size(); ++j)
+    {
+      terminate_flag[j].store(true);
+      threads[j].join();
+    }
+
+    REQUIRE(ThreadContextManager::instance().has_invalid_thread_context());
+
+    // Now check all thread contexts still exist but they are invalided and then remove them
+
+    REQUIRE(ThreadContextManager::instance().has_invalid_thread_context());
+
+    // For this we use the old cache avoiding to update it - This never happens in the real logger
+    std::vector<ThreadContext const*> tc_cache;
+    ThreadContextManager::instance().for_each_thread_context(
+      [&tc_cache](ThreadContext const* tc)
+      {
+        REQUIRE_FALSE(tc->is_valid());
+        REQUIRE(tc->get_spsc_queue<FrontendOptions::queue_type>().empty());
+        tc_cache.push_back(tc);
+      });
+
+    // Remove them
+    for (ThreadContext const* tc : tc_cache)
+    {
+      ThreadContextManager::instance().remove_shared_invalidated_thread_context(tc);
+    }
+
+    // Check all are removed
+    bool tc_found = false;
+    ThreadContextManager::instance().for_each_thread_context([&tc_found](ThreadContext const*)
+                                                             { tc_found = true; });
+
+    REQUIRE_FALSE(tc_found);
+  }
+}
+
+TEST_CASE("invalid_thread_context_counter_handles_large_batches")
+{
+  constexpr size_t num_threads{300};
+  std::array<std::thread, num_threads> threads;
+  std::array<std::atomic<bool>, num_threads> terminate_flag{};
+  std::fill(terminate_flag.begin(), terminate_flag.end(), false);
+
+  std::atomic<uint32_t> threads_started{0};
+
+  for (size_t i = 0; i < threads.size(); ++i)
+  {
+    auto& thread_terminate_flag = terminate_flag[i];
+    threads[i] = std::thread(
+      [&thread_terminate_flag, &threads_started]()
+      {
+        ThreadContext* tc = get_local_thread_context<FrontendOptions>();
+        REQUIRE(tc->has_unbounded_queue_type());
+        threads_started.fetch_add(1);
+
+        while (!thread_terminate_flag.load())
+        {
+          std::this_thread::sleep_for(std::chrono::milliseconds{1});
+        }
+      });
+  }
+
+  while (threads_started.load() < num_threads)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds{1});
+  }
+
+  for (size_t i = 0; i < threads.size(); ++i)
+  {
+    terminate_flag[i].store(true);
+    threads[i].join();
+  }
+
+  REQUIRE(ThreadContextManager::instance().has_invalid_thread_context());
+
+  std::vector<ThreadContext const*> tc_cache;
+  ThreadContextManager::instance().for_each_thread_context(
+    [&tc_cache](ThreadContext const* tc)
+    {
+      REQUIRE_FALSE(tc->is_valid());
+      tc_cache.push_back(tc);
+    });
+
+  REQUIRE_EQ(tc_cache.size(), num_threads);
+
+  for (ThreadContext const* tc : tc_cache)
+  {
+    ThreadContextManager::instance().remove_shared_invalidated_thread_context(tc);
+  }
+
+  REQUIRE_FALSE(ThreadContextManager::instance().has_invalid_thread_context());
+}
+
+TEST_CASE("invalid_context_is_already_counted")
+{
+  auto& manager = ThreadContextManager::instance();
+  for (size_t iteration = 0; iteration < 100; ++iteration)
+  {
+    std::atomic<ThreadContext*> context{nullptr};
+    std::atomic<bool> retire{false};
+    std::thread producer{[&]
+    {
+      context.store(get_local_thread_context<FrontendOptions>(), std::memory_order_release);
+      while (!retire.load(std::memory_order_acquire))
+      {
+        std::this_thread::yield();
+      }
+    }};
+
+    ThreadContext* observed_context{nullptr};
+    while (!(observed_context = context.load(std::memory_order_acquire)))
+    {
+      std::this_thread::yield();
+    }
+    retire.store(true, std::memory_order_release);
+    while (observed_context->is_valid())
+    {
+      std::this_thread::yield();
+    }
+
+    // Check before joining, while the producer can still be completing TLS destruction.
+    CHECK(manager.has_invalid_thread_context());
+    manager.remove_shared_invalidated_thread_context(observed_context);
+    producer.join();
+    CHECK_FALSE(manager.has_invalid_thread_context());
+  }
+}
+
+TEST_SUITE_END();
