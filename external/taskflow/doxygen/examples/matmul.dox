@@ -1,0 +1,109 @@
+namespace tf {
+
+/** @page matrix_multiplication Matrix Multiplication
+
+We study parallel 2D matrix multiplication on a CPU, showing how
+%Taskflow's parallel-for algorithm turns a sequential triple-nested loop
+into a scalable parallel program with minimal code change.
+
+@tableofcontents
+
+@section MatrixMultiplicationProblem Problem Formulation
+
+We multiply matrix @c A (@c M×K) by matrix @c B (@c K×N) to produce
+output matrix @c C (@c M×N).
+The number of columns in @c A must equal the number of rows in @c B.
+Each element <tt>C[m][n]</tt> is the dot product of row @c m of @c A and
+column @c n of @c B:
+
+@image html images/matrix_multiplication_1.png width=50%
+
+@image html images/matrix_multiplication_2.png width=50%
+
+The sequential triple-nested loop is:
+
+@code{.cpp}
+for(int m = 0; m < M; m++) {
+  for(int n = 0; n < N; n++) {
+    C[m][n] = 0;
+    for(int k = 0; k < K; k++) {
+      C[m][n] += A[m][k] * B[k][n];
+    }
+  }
+}
+@endcode
+
+@section MatrixMultiplicationParallelPattern Parallel Decomposition
+
+The rows of @c C are completely independent of one another — computing
+row @c m does not affect any other row.
+We exploit this independence by assigning one task per row.
+This @em coarse-grained decomposition gives each task enough work to
+amortise the overhead of task creation and scheduling:
+
+@code{.cpp}
+void matrix_multiplication(int** A, int** B, int** C, int M, int K, int N) {
+  tf::Taskflow taskflow;
+  tf::Executor executor;
+
+  // one task per row of C
+  for(int m = 0; m < M; m++) {
+    taskflow.emplace([m, &]() {
+      for(int n = 0; n < N; n++) {
+        for(int k = 0; k < K; k++) {
+          C[m][n] += A[m][k] * B[k][n];
+        }
+      }
+    });
+  }
+
+  executor.run(taskflow).wait();
+}
+@endcode
+
+The same parallelism can be expressed more concisely using
+tf::Taskflow::for_each_index, which handles partitioning and scheduling
+automatically:
+
+@code{.cpp}
+taskflow.for_each_index(0, M, 1, [&](int m) {
+  for(int n = 0; n < N; n++) {
+    for(int k = 0; k < K; k++) {
+      C[m][n] += A[m][k] * B[k][n];
+    }
+  }
+});
+@endcode
+
+See @ref ParallelIterations for partitioning strategies and chunk-size
+tuning that can further improve performance.
+
+@section MatrixMultiplicationBenchmarking Benchmarking
+
+The table below compares sequential and parallel CPU runtimes on a
+12-core Intel i7-8700 at 3.2 GHz:
+
+<div align="center">
+| Matrix size | CPU sequential | CPU parallel |
+| :-:         | :-:            | :-:          |
+| 10×10       | 0.142 ms       | 0.414 ms     |
+| 100×100     | 1.641 ms       | 0.733 ms     |
+| 1000×1000   | 1532 ms        | 504 ms       |
+| 2000×2000   | 25688 ms       | 4387 ms      |
+| 3000×3000   | 104838 ms      | 16170 ms     |
+| 4000×4000   | 250133 ms      | 39646 ms     |
+</div>
+
+For small matrices the task-creation overhead dominates and the sequential
+version is faster.
+As the matrix size grows, task overhead becomes negligible relative to
+the computation, and the parallel speed-up grows toward the number of
+available cores — reaching @b 6.3× at 4000×4000.
+
+@note
+For GPU-accelerated matrix multiplication that achieves over 90× speed-up
+at large sizes, see @ref MatrixMultiplicationWithCUDAGPU.
+
+*/
+
+}

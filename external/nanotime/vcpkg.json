@@ -1,0 +1,5 @@
+{
+  "name": "test-nanotime",
+  "builtin-baseline": "a34c873a9717a888f58dc05268dea15592c2f0ff",
+  "dependencies": [ "sdl2" ]
+}

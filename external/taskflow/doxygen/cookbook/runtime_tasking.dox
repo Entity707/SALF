@@ -1,0 +1,200 @@
+namespace tf {
+
+/** @page RuntimeTasking Runtime Tasking
+
+%Taskflow allows a task to interact directly with the scheduling runtime
+by taking a tf::Runtime object as its argument.
+Through this handle, a task can spawn new work dynamically, synchronise
+with sub-tasks cooperatively, and implement recursive parallel algorithms —
+capabilities that are not possible with ordinary static tasks.
+We recommend reading @ref AsyncTasking and @ref DependentAsyncTasking
+before this page.
+
+@tableofcontents
+
+@section WhatIsARuntimeTask What is a Runtime Task?
+
+An ordinary %Taskflow task is a pure callable with no connection to the
+scheduler that runs it.
+A @em runtime @em task breaks this boundary by accepting a tf::Runtime&
+parameter, giving the task a live handle to the executor.
+Any callable that takes @c tf::Runtime& as its argument is automatically
+recognized as a runtime task by %Taskflow:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow;
+
+taskflow.emplace([&](tf::Runtime& rt) {
+  assert(&rt.executor() == &executor);  // rt provides access to the executor
+});
+
+executor.run(taskflow).wait();
+@endcode
+
+The real power of a runtime task lies in its ability to spawn and
+synchronise sub-tasks on the fly, described in the sections below.
+
+@section SpawnTasksFromARuntime Spawn Tasks from a Runtime
+
+@subsection SpawnAsyncTasksFromARuntime Async Tasks
+
+tf::Runtime::async and tf::Runtime::silent_async launch unordered async
+tasks from within a running runtime task.
+These calls are @em thread-safe and place the new tasks immediately into
+the executor's work-stealing pool.
+
+A key property of runtime-spawned tasks is @em implicit @em synchronisation:
+all tasks spawned from a tf::Runtime are guaranteed to finish before the
+runtime task itself completes and control passes to the next task in the
+graph.
+You do not need to manually join them — the runtime handles this
+automatically at the end of its scope.
+
+The example below spawns 1000 async tasks from runtime task @c A.
+Task @c B runs after @c A in the static graph.
+Thanks to the implicit join, @c B is guaranteed to observe
+@c counter == 1000 with no additional synchronisation required:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow;
+std::atomic<size_t> counter{0};
+
+tf::Task A = taskflow.emplace([&](tf::Runtime& rt) {
+  for(size_t i = 0; i < 1000; i++) {
+    rt.silent_async([&]() {
+      counter.fetch_add(1, std::memory_order_relaxed);
+    });
+  }
+  // implicit join: all 1000 tasks finish before A completes
+});
+
+tf::Task B = taskflow.emplace([&]() {
+  assert(counter == 1000);  // always holds
+});
+
+A.precede(B);
+executor.run(taskflow).wait();
+@endcode
+
+@subsection SpawnDependentAsyncTasksFromARuntime Dependent Async Tasks
+
+tf::Runtime::dependent_async and tf::Runtime::silent_dependent_async let
+you build a dynamic task graph with explicit dependency edges from within
+a runtime task.
+This mirrors the executor-level API in @ref DependentAsyncTasking, with
+the same implicit synchronisation guarantee: all dependent-async tasks
+spawned from the runtime are joined before the runtime task completes.
+
+The example below builds a sequential chain of 1001 dependent-async tasks
+inside a single runtime task.
+Each task asserts a specific value of @c counter, which is enforced by
+the dependency edges:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow;
+
+taskflow.emplace([](tf::Runtime& rt) {
+  int counter = 0;
+
+  // first task in the chain
+  tf::AsyncTask prev = rt.silent_dependent_async([&]() {
+    assert(counter == 0);
+    ++counter;
+  });
+
+  // extend the chain: each task depends on the one before it
+  for(size_t i = 1; i <= 1000; i++) {
+    tf::AsyncTask curr = rt.silent_dependent_async([&, i]() {
+      assert(counter == static_cast<int>(i));
+      ++counter;
+    }, prev);
+    prev = curr;
+  }
+  // implicit join: the entire chain completes before the runtime task ends
+});
+
+executor.run(taskflow).wait();
+@endcode
+
+@section IssueCooperativeExecution Issue Cooperative Execution
+
+tf::Runtime::corun allows a runtime task to explicitly wait for all its
+currently spawned sub-tasks to finish at any point during execution,
+not just at the end of its scope.
+Unlike a blocking wait, @c corun does @em not suspend the calling worker.
+Instead, the worker remains active in the executor's work-stealing loop,
+picking up and executing available tasks while waiting — keeping all
+threads productive.
+
+A particularly important advantage of this cooperative model is that
+@c corun @em preserves the call stack of the invoking runtime task.
+The runtime task stays live on the worker while @c corun executes; when all
+sub-tasks finish, execution resumes exactly where it left off with all local
+variables and state intact.
+This makes it possible to implement recursive parallel algorithms where each
+level of recursion spawns sub-tasks and then waits cooperatively, building
+up a tree of live runtime contexts without ever blocking a thread.
+
+The example below implements parallel Fibonacci using recursive runtime
+tasks.
+At each level, the left child is spawned as an async runtime task while the
+right child is computed inline.
+@c rt.corun() then waits cooperatively for the left child, resuming with
+the local variables @c res1 and @c res2 exactly as they were:
+
+@code{.cpp}
+#include <taskflow/taskflow.hpp>
+
+size_t fibonacci(size_t N, tf::Runtime& rt) {
+
+  if(N < 2) return N;
+
+  size_t res1, res2;
+
+  // spawn the left child as an async runtime task
+  rt.silent_async([N, &res1](tf::Runtime& rt1) {
+    res1 = fibonacci(N-1, rt1);
+  });
+
+  // compute the right child inline (tail optimisation)
+  res2 = fibonacci(N-2, rt);
+
+  // cooperatively wait for the left child:
+  // the worker stays active and local state (res1, res2) is preserved
+  rt.corun();
+
+  return res1 + res2;
+}
+
+int main() {
+
+  tf::Executor executor;
+
+  size_t N = 5, res;
+  executor.silent_async([N, &res](tf::Runtime& rt) {
+    res = fibonacci(N, rt);
+  });
+  executor.wait_for_all();
+
+  std::cout << N << "-th Fibonacci number is " << res << '\n';
+
+  return 0;
+}
+@endcode
+
+The figure below shows the execution diagram for @c fibonacci(4).
+The suffix @em _1 denotes the left child spawned by its parent runtime:
+
+@dotfile images/fibonacci_4_tail_optimized.dot
+
+@note
+tf::Runtime::corun can also be called with a taskflow or a graph object to
+run it cooperatively from within a runtime task.
+See tf::Runtime::corun for the full set of overloads.
+
+*/
+
+}

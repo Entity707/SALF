@@ -1,0 +1,148 @@
+namespace tf {
+
+/** @page MatrixMultiplicationWithCUDAGPU Matrix Multiplication with CUDA GPU
+
+Following @ref matrix_multiplication, we accelerate matrix multiplication
+on a CUDA GPU using tf::cudaGraph.
+The GPU's massive thread-level parallelism reduces large problem runtimes
+from minutes to milliseconds.
+
+@tableofcontents
+
+@section GPUAcceleratedMatrixMultiplication CUDA Kernel
+
+Unlike the CPU version where each task processes one row, on the GPU we
+assign one CUDA thread to each element of @c C.
+We store all matrices in 1D row-major layout to simplify host-to-device
+transfers: element <tt>(x, y)</tt> in a matrix of width @c W is stored at
+index <tt>x * W + y</tt>.
+
+@image html images/matrix_multiplication_4.png width=70%
+
+The CUDA kernel is:
+
+@code{.cpp}
+__global__ void matmul(int* A, int* B, int* C, int M, int K, int N) {
+  int row = blockIdx.y * blockDim.y + threadIdx.y;
+  int col = blockIdx.x * blockDim.x + threadIdx.x;
+  int sum = 0;
+  if(row < M && col < N) {
+    for(int i = 0; i < K; i++) {
+      sum += A[row * K + i] * B[i * N + col];
+    }
+    C[row * N + col] = sum;
+  }
+}
+@endcode
+
+Each thread computes one element of @c C by iterating over the full inner
+dimension @c K.
+
+@section DefineACUDAGraphForMatrixMultiplication CUDA Graph Task
+
+We build a %Taskflow that allocates GPU memory in parallel, runs the
+CUDA graph, and frees GPU memory when done:
+
+@code{.cpp}
+void matrix_multiplication(int* A, int* B, int* C, int M, int K, int N) {
+
+  tf::Taskflow taskflow;
+  tf::Executor executor;
+
+  int *da, *db, *dc;
+
+  // allocate GPU memory for A, B, and C in parallel
+  tf::Task allocate_a = taskflow.emplace([&]() {
+    cudaMalloc(&da, M * K * sizeof(int));
+  }).name("allocate_a");
+
+  tf::Task allocate_b = taskflow.emplace([&]() {
+    cudaMalloc(&db, K * N * sizeof(int));
+  }).name("allocate_b");
+
+  tf::Task allocate_c = taskflow.emplace([&]() {
+    cudaMalloc(&dc, M * N * sizeof(int));
+  }).name("allocate_c");
+
+  // build and execute the CUDA graph
+  tf::Task cuda = taskflow.emplace([&]() {
+
+    tf::cudaGraph cg;
+
+    // H2D transfers for A and B
+    tf::cudaTask copy_da = cg.copy(da, A, M * K);
+    tf::cudaTask copy_db = cg.copy(db, B, K * N);
+
+    // kernel: one thread per element of C
+    dim3 grid ((N + 15) / 16, (M + 15) / 16);
+    dim3 block(16, 16);
+    tf::cudaTask kmatmul = cg.kernel(grid, block, 0,
+      matmul, da, db, dc, M, K, N
+    );
+
+    // D2H transfer for C
+    tf::cudaTask copy_hc = cg.copy(C, dc, M * N);
+
+    kmatmul.succeed(copy_da, copy_db)
+           .precede(copy_hc);
+
+    tf::cudaStream stream;
+    tf::cudaGraphExec exec(cg);
+    stream.run(exec).synchronize();
+
+  }).name("cuda");
+
+  // free GPU memory
+  tf::Task free_mem = taskflow.emplace([&]() {
+    cudaFree(da);
+    cudaFree(db);
+    cudaFree(dc);
+  }).name("free");
+
+  cuda.succeed(allocate_a, allocate_b, allocate_c)
+      .precede(free_mem);
+
+  executor.run(taskflow).wait();
+}
+@endcode
+
+The outer %Taskflow manages CPU-side orchestration: the three allocation
+tasks run in parallel, then the CUDA graph task runs, and finally GPU
+memory is freed.
+Inside the CUDA graph, two H2D copy tasks feed the kernel and the kernel
+feeds the D2H copy task.
+The CPU taskflow graph is shown below:
+
+@dotfile images/matrix_multiplication_5.dot
+
+After execution, the full task graph including the CUDA sub-graph can be
+visualised:
+
+@dotfile images/matrix_multiplication_6.dot
+
+@section MatrixMultiplicationcudaFlowBenchmarking Benchmarking
+
+We compare three versions — sequential CPU, parallel CPU, and one GPU —
+on a 12-core Intel i7-8700 at 3.20 GHz and a Nvidia RTX 2080:
+
+<div align="center">
+| Matrix size | CPU sequential | CPU parallel | GPU      |
+| :-:         | :-:            | :-:          | :-:      |
+| 10×10       | 0.142 ms       | 0.414 ms     | 82 ms    |
+| 100×100     | 1.641 ms       | 0.733 ms     | 83 ms    |
+| 1000×1000   | 1532 ms        | 504 ms       | 85 ms    |
+| 2000×2000   | 25688 ms       | 4387 ms      | 133 ms   |
+| 3000×3000   | 104838 ms      | 16170 ms     | 214 ms   |
+| 4000×4000   | 250133 ms      | 39646 ms     | 427 ms   |
+</div>
+
+For small matrices the GPU's data transfer overhead dominates and CPU
+solutions are faster.
+As problem size grows, the GPU's thread-level parallelism dominates
+completely.
+At 4000×4000, the GPU is @b 585× faster than the sequential CPU and
+@b 92× faster than the parallel CPU solution.
+
+*/
+
+}

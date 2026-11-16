@@ -1,0 +1,490 @@
+namespace tf {
+
+/** @page ExceptionHandling Exception Handling
+
+%Taskflow provides first-class support for exception handling in parallel
+programs — a capability that most task-parallel libraries deliberately omit.
+This page explains how exceptions propagate through task graphs, subflows,
+async tasks, and corun loops, and how to retrieve or suppress them.
+
+@tableofcontents
+
+@section ExceptionHandlingWhyHard Why Parallel Exception Handling is Hard
+
+In a sequential program, exception handling is straightforward: an exception
+thrown in a function propagates up the call stack until it reaches a
+@c catch block or terminates the program.
+
+@code{.cpp}
+try {
+  do_something();
+} catch(std::exception e) {
+  std::cerr << e.what();
+}
+@endcode
+
+However, in a parallel runtime, this mechanism breaks down entirely.
+%Worker threads execute tasks independently of the application thread.
+When a task on worker thread 3 throws an exception, there is no call stack
+connection back to the @c try block the application wrote.
+The exception cannot simply propagate upward, as it will terminate the worker
+thread if left unhandled, corrupting the entire executor.
+A correct parallel runtime must therefore intercept every exception thrown
+inside a task, store it safely across thread boundaries, cancel the
+appropriate downstream tasks to avoid operating on invalid state, and
+re-raise the exception at the right point, either synchronously on a
+waiting thread or asynchronously via a future handle.
+
+@dotfile images/exception_handling_hard.dot
+
+Getting this right without sacrificing parallel efficiency is non-trivial,
+which is why most task-parallel libraries simply ignore the problem and
+leave exception safety entirely to the user.
+%Taskflow handles it transparently.
+
+@section ExceptionHandlingLogic How Taskflow Handles Exceptions
+
+When a task throws an exception, %Taskflow immediately cancels the
+execution of its parent taskflow — all subsequent tasks that depend on the
+throwing task are skipped.
+The exception itself is then routed to the appropriate reporting context
+according to the following three scenarios.
+
+@dotfile images/exception-handling-logic.dot
+
+When multiple scenarios apply, %Taskflow prioritises them in order:
+Scenario 1 first, then Scenario 2, then Scenario 3.
+
+@subsection Scenario1SynchronousExceptionPropagation Scenario 1: Synchronous Propagation
+
+If the taskflow is executed in a blocking context — such as
+tf::Executor::corun or tf::Subflow::join — the exception is immediately
+rethrown to the calling thread as soon as it is detected.
+The executor does not defer or aggregate it.
+
+@code{.cpp}
+try {
+  executor.corun(taskflow);
+}
+catch (const std::exception& e) {
+  std::cerr << e.what();
+}
+@endcode
+
+@subsection Scenario2AsynchronousExceptionPropagation Scenario 2: Asynchronous Propagation
+
+When tasks are launched via tf::Executor::run or tf::Executor::async, the
+exception is captured and stored in the shared state of the returned
+tf::Future or @c std::future.
+It is rethrown when the application calls @c get() on that future.
+
+@code{.cpp}
+tf::Future<void> fu = executor.run(taskflow);
+try {
+  fu.get();
+}
+catch (const std::exception& e) {
+  std::cerr << e.what();
+}
+@endcode
+
+@subsection Scenario3ContextualExceptionPropagation Scenario 3: Contextual Propagation
+
+This scenario is reached only when no blocking context and no observable
+shared state exist — for example, a task launched via
+tf::Executor::silent_async.
+In this case %Taskflow first attempts to propagate the exception to the
+nearest parent execution context.
+If no such parent exists, the exception is silently suppressed and stored
+locally within the throwing task.
+
+@code{.cpp}
+// No parent context: exception is silently suppressed
+executor.silent_async([&]() {
+  throw std::runtime_error("this exception is suppressed");
+});
+
+// Parent context exists: exception propagates to the task group
+executor.silent_async([&]() {
+  tf::TaskGroup tg = executor.task_group();
+  tg.silent_async([]() {
+    throw std::runtime_error("this propagates to the parent task group");
+  });
+  try {
+    tg.corun();
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << e.what();
+  }
+});
+@endcode
+
+@subsection ExceptionHandlingAlgorithmFlow Algorithm Flow
+
+The figure below illustrates the full decision process.
+When a task throws, the runtime walks up the task hierarchy to mark the
+execution path as exceptional and identifies two kinds of anchor nodes:
+an @em explicit @em anchor (a blocking context such as @c corun or @c join)
+and an @em implicit @em anchor (a parent task group).
+If an explicit anchor is found, the exception is captured and rethrown on
+the waiting application thread (Scenario 1).
+If no explicit anchor exists but a shared state is associated, the exception
+is stored for asynchronous retrieval (Scenario 2).
+Otherwise the runtime propagates to the nearest implicit anchor if one
+exists, or suppresses the exception locally (Scenario 3).
+This algorithm ensures exceptions are reported whenever a reporting context
+is available while preserving safe and efficient parallel execution.
+
+@dotfile images/exception-handling-algorithm.dot
+
+@section ExceptionHandlingRunningTaskflow Catch an Exception from a Running Taskflow
+
+The most common case is catching an exception thrown by a task inside a
+taskflow submitted with tf::Executor::run.
+The executor captures the exception and stores it in the shared state of
+the returned tf::Future.
+Calling @c get() rethrows it:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow;
+
+taskflow.emplace([]() { throw std::runtime_error("exception"); });
+
+try {
+  executor.run(taskflow).get();
+}
+catch (const std::runtime_error& e) {
+  std::cerr << e.what() << '\n';
+}
+@endcode
+
+@note
+tf::Future is derived from @std_future and inherits all standard
+exception-handling behaviours defined by the C++ standard.
+
+When a task throws, the executor immediately cancels the rest of the
+taskflow — all tasks that depend on the throwing task are skipped.
+The following example shows this with a two-task chain where @c B depends
+on @c A:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow;
+
+tf::Task A = taskflow.emplace([]() {
+  throw std::runtime_error("exception on A");
+});
+tf::Task B = taskflow.emplace([]() {
+  std::cout << "Task B\n";  // never printed
+});
+A.precede(B);
+
+try {
+  executor.run(taskflow).get();
+}
+catch (const std::runtime_error& e) {
+  std::cerr << e.what() << '\n';
+}
+@endcode
+
+@code{.bash}
+exception on A
+@endcode
+
+When multiple tasks throw exceptions concurrently, %Taskflow propagates
+exactly one to the @c catch block.
+The others are silently caught and stored within their respective tasks
+(see @ref RetrieveTheExceptionPointerOfATask).
+In the diamond taskflow below, both @c B and @c C may throw simultaneously —
+only one exception reaches the application:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow;
+
+auto [A, B, C, D] = taskflow.emplace(
+  []() { std::cout << "Task A\n"; },
+  []() {
+    std::cout << "Task B\n";
+    throw std::runtime_error("Exception on Task B");
+  },
+  []() {
+    std::cout << "Task C\n";
+    throw std::runtime_error("Exception on Task C");
+  },
+  []() { std::cout << "Task D\n"; }  // skipped
+);
+
+A.precede(B, C);
+D.succeed(B, C);
+
+try {
+  executor.run(taskflow).get();
+}
+catch (const std::runtime_error& e) {
+  std::cerr << e.what() << '\n';  // either B's or C's exception
+}
+@endcode
+
+@section ExceptionHandlingSubflow Catch an Exception from a Subflow
+
+When you explicitly join a subflow with tf::Subflow::join, you can catch
+exceptions thrown by its child tasks at the join point:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow;
+
+taskflow.emplace([](tf::Subflow& sf) {
+  tf::Task A = sf.emplace([]() {
+    std::cout << "Task A\n";
+    throw std::runtime_error("exception on A");
+  });
+  tf::Task B = sf.emplace([]() {
+    std::cout << "Task B\n";  // skipped
+  });
+  A.precede(B);
+
+  try {
+    sf.join();
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "caught at join: " << e.what() << '\n';
+  }
+});
+
+executor.run(taskflow).get();
+@endcode
+
+@code{.bash}
+Task A
+caught at join: exception on A
+@endcode
+
+If you do not catch the exception at the join point, it propagates up to the
+parent taskflow and is rethrown when the application calls @c get():
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow;
+
+taskflow.emplace([](tf::Subflow& sf) {
+  tf::Task A = sf.emplace([]() {
+    std::cout << "Task A\n";
+    throw std::runtime_error("exception on A");
+  });
+  tf::Task B = sf.emplace([]() { std::cout << "Task B\n"; });
+  A.precede(B);
+  sf.join();  // exception propagates upward
+});
+
+try {
+  executor.run(taskflow).get();
+}
+catch (const std::runtime_error& e) {
+  std::cerr << "caught at taskflow: " << e.what() << '\n';
+}
+@endcode
+
+@code{.bash}
+Task A
+caught at taskflow: exception on A
+@endcode
+
+@section ExceptionHandlingAsyncTask Catch an Exception from an Async Task
+
+tf::Executor::async behaves like @c std::async: the exception is stored in
+the returned @c std::future and rethrown on @c get():
+
+@code{.cpp}
+tf::Executor executor;
+
+auto fu = executor.async([]() {
+  throw std::runtime_error("exception");
+});
+
+try {
+  fu.get();
+}
+catch (const std::runtime_error& e) {
+  std::cerr << e.what() << '\n';
+}
+@endcode
+
+tf::Executor::silent_async returns no future, so an exception thrown inside
+it is handled contextually (Scenario 3): propagated to the nearest parent
+context if one exists, or silently suppressed otherwise:
+
+@code{.cpp}
+tf::Taskflow taskflow;
+tf::Executor executor;
+
+// no parent context — exception is silently suppressed
+executor.silent_async([]() {
+  throw std::runtime_error("suppressed");
+});
+
+// inside a Runtime task — exception propagates to the parent taskflow
+taskflow.emplace([&](tf::Runtime& rt) {
+  rt.silent_async([]() {
+    throw std::runtime_error("propagated to taskflow");
+  });
+});
+
+try {
+  executor.run(taskflow).get();
+}
+catch (const std::runtime_error& e) {
+  std::cerr << e.what() << '\n';
+}
+@endcode
+
+@section ExceptionHandlingCorun Catch an Exception from a Corun Loop
+
+tf::Executor::corun and tf::Runtime::corun run a graph to completion on the
+calling thread, so any exception thrown inside is immediately rethrown
+(Scenario 1).
+You can catch it directly at the @c corun call site:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow1, taskflow2;
+
+taskflow1.emplace([]() {
+  throw std::runtime_error("exception");
+});
+taskflow2.emplace([&]() {
+  try {
+    executor.corun(taskflow1);
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "caught at corun: " << e.what() << '\n';
+  }
+});
+
+executor.run(taskflow2).get();
+@endcode
+
+The same applies to tf::Runtime::corun:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow1, taskflow2;
+
+taskflow1.emplace([]() {
+  throw std::runtime_error("exception");
+});
+taskflow2.emplace([&](tf::Runtime& rt) {
+  try {
+    rt.corun(taskflow1);
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "caught at corun: " << e.what() << '\n';
+  }
+});
+
+executor.run(taskflow2).get();
+@endcode
+
+If the exception is not caught at the @c corun call site, it propagates to
+the parent task and then to the parent taskflow:
+
+@code{.cpp}
+tf::Executor executor;
+tf::Taskflow taskflow1, taskflow2;
+
+taskflow1.emplace([]() {
+  throw std::runtime_error("exception");
+});
+taskflow2.emplace([&](tf::Runtime& rt) {
+  rt.corun(taskflow1);  // not caught here
+});
+
+try {
+  executor.run(taskflow2).get();
+}
+catch (const std::runtime_error& e) {
+  std::cerr << "caught at taskflow: " << e.what() << '\n';
+}
+@endcode
+
+@section RetrieveTheExceptionPointerOfATask Retrieve the Exception Pointer of a Task
+
+When multiple tasks throw simultaneously, %Taskflow propagates exactly one
+exception to the application.
+The remaining exceptions are stored inside their respective tasks and can be
+inspected via tf::Task::exception_ptr, which returns a non-null
+@c std::exception_ptr if the task threw, or @c nullptr if it completed
+normally.
+
+This is useful for post-mortem analysis: after catching the propagated
+exception, you can walk the task graph and check which other tasks also
+threw:
+
+@code{.cpp}
+tf::Executor executor(2);
+tf::Taskflow taskflow;
+std::atomic<size_t> arrivals{0};
+
+// Both B and C throw; the barrier ensures they execute truly concurrently
+// so neither is cancelled before it gets a chance to throw.
+auto [B, C] = taskflow.emplace(
+  [&]() {
+    ++arrivals; while (arrivals != 2);
+    throw std::runtime_error("exception from B");
+  },
+  [&]() {
+    ++arrivals; while (arrivals != 2);
+    throw std::runtime_error("exception from C");
+  }
+);
+
+try {
+  executor.run(taskflow).get();
+}
+catch (const std::runtime_error& e) {
+  std::cerr << "propagated: " << e.what() << '\n';
+}
+
+// Exactly one task holds a stored exception; the other was propagated
+assert((B.exception_ptr() != nullptr) != (C.exception_ptr() != nullptr));
+
+// Inspect the stored exception
+if (auto ep = B.exception_ptr()) {
+  try { std::rethrow_exception(ep); }
+  catch (const std::runtime_error& e) {
+    std::cerr << "stored in B: " << e.what() << '\n';
+  }
+}
+if (auto ep = C.exception_ptr()) {
+  try { std::rethrow_exception(ep); }
+  catch (const std::runtime_error& e) {
+    std::cerr << "stored in C: " << e.what() << '\n';
+  }
+}
+@endcode
+
+@section DisableExceptionHandling Disable Exception Handling at Compile Time
+
+In performance-critical applications without exception safety requirements,
+you can disable %Taskflow's exception handling entirely at compile time by
+defining @c TF_DISABLE_EXCEPTION_HANDLING:
+
+@code{.bash}
+g++ -DTF_DISABLE_EXCEPTION_HANDLING your_program.cpp
+@endcode
+
+This removes all @c try-@c catch blocks from the %Taskflow runtime, producing
+a leaner binary and potentially faster execution.
+
+@attention
+With exception handling disabled, any exception thrown inside a task is
+unchecked and will propagate uncontrolled through the runtime, likely
+terminating the program or causing undefined behaviour.
+Use this option only if your application guarantees that no task will throw.
+
+*/
+
+}
+

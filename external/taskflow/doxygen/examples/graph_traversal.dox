@@ -1,0 +1,133 @@
+namespace tf {
+
+/** @page graphtraversal Graph Traversal
+
+We study parallel DAG traversal — visiting every vertex of a directed
+acyclic graph in dependency order, processing each vertex as soon as all
+of its predecessors have finished.
+Graph traversal is a fundamental building block of large-scale graph
+analytics, build systems, circuit simulation, and workflow engines.
+
+@tableofcontents
+
+@section GraphTraversalProblemFormulation Problem Formulation
+
+Given a directed acyclic graph (DAG), we want to visit each vertex
+exactly once, respecting the partial order defined by the edges.
+The following figure shows the six-vertex, seven-edge DAG used as a
+running example:
+
+@dotfile images/task-level-parallelism.dot
+
+The graph has a single source (Task1) and a single sink (Task6).
+When Task1 completes, Task2, Task3, and Task4 can all run simultaneously —
+giving a maximum parallelism of three at that point.
+The challenge is to exploit this available parallelism automatically,
+without writing explicit thread management or synchronisation code.
+
+@section GraphTraversalGraphRepresentation Graph Representation
+
+We represent the graph as an array of @c Node structures.
+Each node stores its index, a @c visited flag, an atomic in-degree counter
+(@c dependents), and a list of outgoing edge pointers (@c successors):
+
+@code{.cpp}
+struct Node {
+  std::string name;
+  size_t idx;
+
+  bool visited {false};
+  std::atomic<size_t> dependents {0};  // number of unfinished predecessors
+  std::vector<Node*> successors;       // outgoing edges
+
+  void precede(Node& n) {
+    successors.emplace_back(&n);
+    n.dependents++;
+  }
+};
+@endcode
+
+We generate random DAGs with ordered edges, which guarantees acyclicity
+since all edges point from lower- to higher-indexed nodes:
+
+@code{.cpp}
+std::unique_ptr<Node[]> make_dag(size_t num_nodes, size_t max_degree) {
+
+  std::unique_ptr<Node[]> nodes(new Node[num_nodes]);
+
+  for(size_t i = 0; i < num_nodes; i++) {
+    nodes[i].idx  = i;
+    nodes[i].name = std::to_string(i);
+  }
+
+  for(size_t i = 0; i < num_nodes; i++) {
+    size_t degree = 0;
+    for(size_t j = i + 1; j < num_nodes && degree < max_degree; j++) {
+      if(std::rand() % 2 == 1) {
+        nodes[i].precede(nodes[j]);
+        degree++;
+      }
+    }
+  }
+
+  return nodes;
+}
+@endcode
+
+@section GraphTraversalStaticTraversal Parallel Static Traversal
+
+We build a %Taskflow that mirrors the graph structure exactly: one task
+per node, with task dependencies mirroring graph edges.
+Each task marks its node @c visited, decrements the @c dependents counter
+of each successor, and completes.
+In practice, the task body would contain the actual computation for that
+node — the @c visited and @c dependents updates are used here only to
+verify correctness after traversal.
+
+@code{.cpp}
+tf::Taskflow taskflow;
+tf::Executor executor;
+
+const size_t num_nodes = 100000;
+std::unique_ptr<Node[]> nodes = make_dag(num_nodes, 4);
+std::vector<tf::Task> tasks(num_nodes);
+
+// create one traversal task per node
+for(size_t i = 0; i < num_nodes; i++) {
+  tasks[i] = taskflow.emplace([v = &nodes[i]]() {
+    v->visited = true;
+    for(auto s : v->successors) {
+      s->dependents.fetch_sub(1);
+    }
+  }).name(nodes[i].name);
+}
+
+// wire task dependencies to match graph edges
+for(size_t i = 0; i < num_nodes; i++) {
+  for(auto s : nodes[i].successors) {
+    tasks[i].precede(tasks[s->idx]);
+  }
+}
+
+executor.run(taskflow).wait();
+
+// verify: every node visited with all predecessor counts drained
+for(size_t i = 0; i < num_nodes; i++) {
+  assert(nodes[i].visited);
+  assert(nodes[i].dependents == 0);
+}
+@endcode
+
+The implementation has two clearly separated phases.
+First, it creates a traversal task for each node.
+Second, it wires task dependencies to exactly mirror the graph edges.
+The resulting taskflow is topologically equivalent to the input DAG.
+The executor distributes tasks across all available cores, respecting
+all dependencies and maximising parallelism wherever the graph structure
+allows it.
+No manual thread management, mutexes, or barrier synchronisation is
+required.
+
+*/
+
+}

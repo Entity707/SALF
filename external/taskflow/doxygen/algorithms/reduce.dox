@@ -1,0 +1,335 @@
+namespace tf {
+
+/** @page ParallelReduction Parallel Reduction
+
+%Taskflow provides template functions for constructing tasks to perform
+parallel reduction over a range of items.
+
+@tableofcontents
+
+@section ParallelReductionInclude Include the Header
+
+You need to include the header file, <tt>taskflow/algorithm/reduce.hpp</tt>,
+for creating a parallel-reduction task.
+
+@code{.cpp}
+#include <taskflow/algorithm/reduce.hpp>
+@endcode
+
+@section ParallelReductionCreate Create a Parallel-Reduction Task
+
+The task created by
+tf::Taskflow::reduce(B first, E last, T& result, O bop, P part)
+performs parallel reduction over the range <tt>[first, last)</tt> using the
+binary operator @c bop and stores the reduced result in @c result.
+It represents the parallel execution of the following loop:
+
+@code{.cpp}
+for(auto itr = first; itr != last; itr++) {
+  result = bop(result, *itr);
+}
+@endcode
+
+At runtime, the reduction task partitions the range among workers, each
+computing a partial result, and then combines those partial results into
+@c result using @c bop.
+The initial value of @c result participates in the reduction — it is combined
+with the partial results as if it were an additional element.
+@c result is captured by reference inside the task; it is the user's
+responsibility to ensure it remains alive during execution.
+
+@code{.cpp}
+int sum = 100;
+std::vector<int> vec = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+tf::Task task = taskflow.reduce(vec.begin(), vec.end(), sum,
+  [](int l, int r) { return l + r; }
+);
+
+executor.run(taskflow).wait();
+assert(sum == 155);  // 100 + (1+2+...+10)
+@endcode
+
+The order in which @c bop is applied to pairs of elements is @em unspecified.
+Elements of the range may be grouped and rearranged in arbitrary order, as
+illustrated below for a sum-reduction over eight elements:
+
+@dotfile images/parallel_reduction.dot
+
+The result and argument types of @c bop must be consistent with the element type.
+
+@subsection ParallelReductionCaptureIteratorsByReference Capture Iterators by Reference
+
+You can pass iterators by reference using @std_ref to marshal parameter
+updates between dependent tasks.
+This is useful when the range is not known at task-graph construction time
+but is initialized by an upstream task.
+
+@code{.cpp}
+int sum = 100;
+std::vector<int> vec;
+std::vector<int>::iterator first, last;
+
+tf::Task init = taskflow.emplace([&]() {
+  vec   = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  first = vec.begin();
+  last  = vec.end();
+});
+
+tf::Task task = taskflow.reduce(
+  std::ref(first), std::ref(last), sum,
+  [](int l, int r) { return l + r; }
+);
+
+// wrong! first and last are captured by copy at construction time
+// tf::Task task = taskflow.reduce(first, last, sum,
+//   [](int l, int r) { return l + r; }
+// );
+
+init.precede(task);
+
+executor.run(taskflow).wait();
+assert(sum == 155);
+@endcode
+
+When @c init finishes, @c first and @c last point to the initialized data
+range of @c vec, and the reduction task performs parallel reduction over
+the 10 elements.
+
+@section ParallelTransformReductionCreate Create a Parallel-Transform-Reduction Task
+
+It is common to transform each element into a new type and then reduce over
+the transformed values.
+The task created by
+tf::Taskflow::transform_reduce(B first, E last, T& result, BOP bop, UOP uop, P part)
+applies the unary operator @c uop to each element and then performs parallel
+reduction over @c result and the transformed values using @c bop.
+It represents the parallel execution of the following loop:
+
+@code{.cpp}
+for(auto itr = first; itr != last; itr++) {
+  result = bop(result, uop(*itr));
+}
+@endcode
+
+The example below transforms each digit character in a string to an integer
+and then sums them in parallel:
+
+@code{.cpp}
+std::string str = "12345678";
+int sum = 0;
+
+tf::Task task = taskflow.transform_reduce(str.begin(), str.end(), sum,
+  [](int a, int b) { return a + b; },   // binary reduction operator
+  [](char c) -> int { return c - '0'; } // unary transformation operator
+);
+
+executor.run(taskflow).wait();
+assert(sum == 36);  // 1+2+3+4+5+6+7+8
+@endcode
+
+The order in which @c bop is applied to the transformed elements is
+@em unspecified.
+It is possible that @c bop will receive r-value arguments from both sides
+(e.g., <tt>bop(uop(*itr1), uop(*itr2))</tt>) due to transformed temporaries.
+When data passing is expensive, define the result type @c T to be
+move-constructible.
+
+@subsection ParallelTransformReductionCaptureIteratorsByReference Capture Iterators by Reference
+
+As with tf::Taskflow::reduce, iterators can be passed by reference using
+@std_ref so that an upstream task can set up the range before the
+parallel-transform-reduction runs.
+
+@code{.cpp}
+std::string str;
+std::string::iterator first, last;
+int sum = 0;
+
+tf::Task init = taskflow.emplace([&]() {
+  str   = "12345678";
+  first = str.begin();
+  last  = str.end();
+});
+
+tf::Task task = taskflow.transform_reduce(
+  std::ref(first), std::ref(last), sum,
+  [](int a, int b) { return a + b; },
+  [](char c) -> int { return c - '0'; }
+);
+
+// wrong! first and last are captured by copy at construction time
+// tf::Task task = taskflow.transform_reduce(first, last, sum, bop, uop);
+
+init.precede(task);
+
+executor.run(taskflow).wait();
+assert(sum == 36);
+@endcode
+
+@section ParallelReduceByIndexCreate Create a Parallel-Reduce-by-Index Task
+
+Unlike tf::Taskflow::reduce, which gives each worker a single element at a
+time, tf::Taskflow::reduce_by_index gives each worker a contiguous
+@em subrange of the index space.
+This allows the local reduction to be written as an explicit loop over the
+subrange, enabling optimisations such as SIMD vectorisation, custom
+accumulator types, or data initialisation interleaved with reduction.
+The method, tf::Taskflow::reduce_by_index,
+represents the parallel execution of the following two-phase loop:
+
+@code{.cpp}
+// phase 1: each worker computes a partial result over its subrange
+T partial = lop(subrange, std::nullopt);    // first subrange: no prior total
+T partial = lop(subrange, running_total);   // subsequent subranges: accumulate
+
+// phase 2: combine all partial results into the final result
+result = gop(result, partial1);
+result = gop(result, partial2);
+// ...
+@endcode
+
+The local operator @c lop is invoked once per subrange assigned to a worker.
+Its second argument is a @c std::optional<T> carrying the running total
+accumulated by that worker so far:
+
+- @c std::nullopt on the first subrange processed by a worker — the worker
+  should initialise its accumulator from scratch.
+- A value on subsequent subranges — the worker should continue accumulating
+  from the provided running total.
+
+The global operator @c gop combines the per-worker partial results and the
+initial value of @c result into the final answer.
+
+The example below performs a sum-reduction over a large array, initialising
+each element inside the local reducer:
+
+@code{.cpp}
+std::vector<double> data(100000);
+double res = 1.0;
+
+taskflow.reduce_by_index(
+  tf::IndexRange<size_t>(0, data.size(), 1),
+  res,
+  // local reducer: called once per subrange per worker
+  [&](tf::IndexRange<size_t> subrange, std::optional<double> running_total) {
+    double partial = running_total ? *running_total : 0.0;
+    for(size_t i = subrange.begin(); i < subrange.end(); i += subrange.step_size()) {
+      data[i] = 1.0;
+      partial += data[i];
+    }
+    return partial;
+  },
+  // global reducer: combines partial results into res
+  std::plus<double>()
+);
+
+executor.run(taskflow).wait();
+assert(res == 100001.0);  // 1.0 (initial) + 100000 * 1.0
+@endcode
+
+The global reducer combines all partial results with the initial value of
+@c res (here @c 1.0), so the final answer is @c 1.0 + @c 100000.0 = @c 100001.0.
+
+@subsection ParallelReduceByIndexCaptureByReference Capture IndexRange by Reference
+
+You can pass the index range by reference using @std_ref so that an upstream
+task can set the bounds before the parallel-reduce-by-index runs.
+
+@code{.cpp}
+std::vector<double> data;
+double res = 0.0;
+
+tf::IndexRange<size_t> range(0, 0, 1);  // placeholder — filled by init
+
+tf::Task init = taskflow.emplace([&]() {
+  data.assign(100000, 1.0);
+  range.begin(0).end(data.size()).step_size(1);
+});
+
+tf::Task task = taskflow.reduce_by_index(
+  std::ref(range),
+  res,
+  [&](tf::IndexRange<size_t> subrange, std::optional<double> running_total) {
+    double partial = running_total ? *running_total : 0.0;
+    for(size_t i = subrange.begin(); i < subrange.end(); i += subrange.step_size()) {
+      partial += data[i];
+    }
+    return partial;
+  },
+  std::plus<double>()
+);
+
+// wrong! range is captured by copy at construction time
+// tf::Task task = taskflow.reduce_by_index(range, res, lop, gop);
+
+init.precede(task);
+
+executor.run(taskflow).wait();
+assert(res == 100000.0);
+@endcode
+
+@section ParallelReductionConfigureAPartitioner Configure a Partitioner
+
+A partitioner controls how the iteration space is divided among workers.
+%Taskflow provides four partitioners, each suited to different workload
+characteristics:
+
+- tf::StaticPartitioner divides the range into equal-sized chunks ahead of
+  execution and assigns them to workers in order.
+  It has the lowest scheduling overhead and delivers the best performance
+  when every element costs roughly the same amount of work to reduce.
+
+- tf::DynamicPartitioner distributes fixed-sized chunks to workers on demand
+  as they become available.
+  It adapts well to workloads where reduction cost varies per element, at
+  the expense of slightly higher coordination overhead.
+
+- tf::GuidedPartitioner distributes chunks whose size decreases adaptively
+  as work is consumed — large chunks early to reduce overhead, smaller chunks
+  late to balance the tail.
+  This is the default partitioner and delivers stable, near-optimal
+  performance across a wide range of workloads.
+
+- tf::RandomPartitioner distributes chunks of randomly sampled sizes, which
+  can help avoid systematic load imbalances caused by data-dependent cost
+  patterns.
+
+The following example creates two parallel-reduction tasks using different
+partitioners:
+
+@code{.cpp}
+int sum1 = 100, sum2 = 100;
+std::vector<int> vec = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+tf::StaticPartitioner static_partitioner(0);  // chunk size auto-determined
+tf::GuidedPartitioner  guided_partitioner(0); // minimum chunk size auto-determined
+
+// parallel-reduction with static partitioner
+taskflow.reduce(vec.begin(), vec.end(), sum1,
+  [](int l, int r) { return l + r; },
+  static_partitioner
+);
+
+// parallel-reduction with guided partitioner
+taskflow.reduce(vec.begin(), vec.end(), sum2,
+  [](int l, int r) { return l + r; },
+  guided_partitioner
+);
+@endcode
+
+As a rule of thumb, prefer tf::StaticPartitioner when every element costs
+the same to reduce (e.g., summation over a plain array) and
+tf::GuidedPartitioner for irregular workloads (e.g., reductions whose cost
+depends on the element value).
+tf::DynamicPartitioner is a good choice when chunks must be kept small and
+strictly equal in size.
+
+@note
+By default, parallel-reduction tasks use tf::DefaultPartitioner
+(currently tf::GuidedPartitioner) if no partitioner is specified.
+
+*/
+
+}
+

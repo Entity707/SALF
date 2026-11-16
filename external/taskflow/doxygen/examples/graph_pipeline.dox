@@ -1,0 +1,164 @@
+namespace tf {
+
+/** @page GraphProcessingPipeline Graph Processing Pipeline
+
+We study a graph processing pipeline that propagates a sequence of stage
+functions through the nodes of a DAG in topological order.
+This example shows how task graph parallelism and pipeline parallelism
+can be combined — and when one model outperforms the other.
+
+@tableofcontents
+
+@section FormulateTheGraphProcessingPipelineProblem Problem Formulation
+
+Given a DAG where each node must execute three sequential stage functions
+@c f1, @c f2, @c f3, and where an edge @c u→v requires @c fi(u) to
+complete before @c fi(v) starts, we want to process all nodes as quickly
+as possible.
+
+The following figure shows the per-node stage dependency for a three-node
+DAG with edges @c A→B and @c A→C:
+
+@dotfile images/graph_pipeline_1.dot
+
+One approach is pure task graph parallelism: one task per node that runs
+@c f1, @c f2, @c f3 sequentially.
+This is simple but leaves pipeline stages idle whenever one stage finishes
+before the next node is ready.
+
+A better approach transforms the problem into pipeline parallelism by
+finding a topological order of the DAG (e.g., @c A, @c B, @c C) and
+treating each node as a @em token that flows through a three-stage pipeline.
+The following figure shows the resulting pipeline execution:
+
+@dotfile images/graph_pipeline_2.dot
+
+Stages on the same anti-diagonal can execute simultaneously.
+For example, @c f3(A), @c f2(B), and @c f1(C) can all run in parallel —
+this is @em wavefront @em parallelism over the (stage × node) grid.
+
+@dotfile images/graph_pipeline_3.dot
+
+@note
+The relative performance of task graph parallelism vs pipeline parallelism
+depends on graph size and stage count.
+A small, wide graph with many short stage functions often favours task
+graph parallelism; a long chain with expensive stages favours pipelining.
+Benchmark both on your workload.
+
+@section CreateAGraphProcessingPipeline Implementation
+
+We create a three-serial-pipe pipeline.
+Each pipe calls the stage function for the node identified by the current
+token index into the topological order:
+
+@code{.cpp}
+#include <taskflow/taskflow.hpp>
+#include <taskflow/algorithm/pipeline.hpp>
+
+void f1(const std::string& node) { printf("f1(%s)\n", node.c_str()); }
+void f2(const std::string& node) { printf("f2(%s)\n", node.c_str()); }
+void f3(const std::string& node) { printf("f3(%s)\n", node.c_str()); }
+
+int main() {
+
+  tf::Taskflow taskflow("graph pipeline");
+  tf::Executor executor;
+
+  const size_t num_lines = 2;
+
+  // topological order of the DAG: A → {B, C}
+  const std::vector<std::string> nodes = {"A", "B", "C"};
+
+  tf::Pipeline pl(num_lines,
+
+    // stage 1: run f1 for the current node, or stop when all are done
+    tf::Pipe{tf::PipeType::SERIAL, [&](tf::Pipeflow& pf) {
+      if(pf.token() == nodes.size()) {
+        pf.stop();
+      }
+      else {
+        f1(nodes[pf.token()]);
+      }
+    }},
+
+    // stage 2: run f2 for the current node
+    tf::Pipe{tf::PipeType::SERIAL, [&](tf::Pipeflow& pf) {
+      f2(nodes[pf.token()]);
+    }},
+
+    // stage 3: run f3 for the current node
+    tf::Pipe{tf::PipeType::SERIAL, [&](tf::Pipeflow& pf) {
+      f3(nodes[pf.token()]);
+    }}
+  );
+
+  tf::Task init = taskflow.emplace([](){ std::cout << "ready\n"; })
+                          .name("start");
+  tf::Task pipe = taskflow.composed_of(pl)
+                          .name("pipeline");
+  tf::Task done = taskflow.emplace([](){ std::cout << "done\n"; })
+                          .name("stop");
+
+  init.precede(pipe);
+  pipe.precede(done);
+
+  executor.run(taskflow).wait();
+
+  return 0;
+}
+@endcode
+
+@subsection GraphPipelineTopologicalOrder Topological Order
+
+The pipeline only supports dependencies from the current token to a
+@em previously processed token (i.e., the pipeline flows in one direction).
+We satisfy this by feeding nodes in a valid topological order, so that
+for any edge @c u→v, @c u appears before @c v in the node sequence.
+In this example we hard-code it:
+
+@code{.cpp}
+const std::vector<std::string> nodes = {"A", "B", "C"};
+@endcode
+
+In a general application, topological order can be computed via DFS or
+Kahn's algorithm on the input graph.
+
+@subsection GraphPipelineOutput Sample Output
+
+Three possible execution orderings for this pipeline:
+
+@code{.bash}
+# output 1 — full pipelining
+ready
+f1(A)
+f2(A)  f1(B)
+f3(A)  f2(B)  f1(C)
+       f3(B)  f2(C)
+              f3(C)
+done
+
+# output 2 — no overlap (sequential-like)
+ready
+f1(A)  f2(A)  f3(A)
+f1(B)  f2(B)  f3(B)
+f1(C)  f2(C)  f3(C)
+done
+@endcode
+
+The task graph for this pipeline is shown below:
+
+@dotfile images/graph_pipeline_4.dot
+
+@section GraphPipelineReference Reference
+
+This graph processing pipeline technique has been applied to accelerate
+timing analysis in VLSI circuit design.
+For details, see:
+
++ Cheng-Hsiang Chiu and Tsung-Wei Huang, "Efficient Timing Propagation
+  with Simultaneous Structural and Pipeline Parallelisms," @em DAC 2022.
+
+*/
+
+}

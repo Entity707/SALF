@@ -6,3 +6,9 @@ tinygltf https://github.com/syoyo/tinygltf/releases
 hwinfo https://github.com/lfreist/hwinfo/releases
 quill https://github.com/odygrd/quill/releases
 miniaudio https://github.com/mackron/miniaudio/releases
+abseil https://github.com/abseil/abseil-cpp/releases
+nanotime https://github.com/nightmareci/nanotime
+taskflow https://github.com/taskflow/taskflow/releases
+highway https://github.com/google/highway/releases
+vma https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/releases
+glm https://github.com/g-truc/glm/releases
