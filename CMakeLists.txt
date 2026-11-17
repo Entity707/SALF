@@ -37,6 +37,17 @@ add_executable(SALF
         src/gameCore.cpp
         src/gameCore.h
         src/math/fixed.h
+        src/math/fastMath.cpp
+        src/math/fastMath.h
+        src/game/screens/screen.cpp
+        src/game/screens/screen.h
+)
+
+add_executable(generateSinCache
+        tools/sinCacheGenerator.cpp
+)
+add_executable(generateAtanCache
+        tools/atanCacheGenerator.cpp
 )
 
 target_include_directories(SALF PRIVATE
