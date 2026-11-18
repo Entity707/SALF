@@ -3,7 +3,7 @@
 
 #include "fixed.h"
 
-namespace salf{
+namespace salf::math{
     constexpr uint32_t SHIFT = fix_t::SHIFT;
     [[nodiscard]] bool isInRange(fix_t dx, fix_t dy, fix_t rSum)noexcept;
     [[nodiscard]] fix_t sqrt(fix_t value) noexcept;

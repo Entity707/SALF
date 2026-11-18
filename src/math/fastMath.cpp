@@ -253,7 +253,7 @@ namespace {
     }
 }
 
-namespace salf {
+namespace salf::math {
     [[nodiscard]] bool isInRange(fix_t dx, fix_t dy, fix_t rSum) noexcept {
         if (rSum.num < 0) return false;
 
