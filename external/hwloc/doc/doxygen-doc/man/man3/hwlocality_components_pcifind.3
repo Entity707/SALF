@@ -1,0 +1,44 @@
+.TH "hwlocality_components_pcifind" 3 "Version 2.15.0" "Hardware Locality (hwloc)" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+hwlocality_components_pcifind \- Components and Plugins: finding PCI objects during other discoveries
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "struct \fBhwloc_obj\fP * \fBhwloc_pci_find_parent_by_busid\fP (struct hwloc_topology *topology, unsigned domain, unsigned bus, unsigned dev, unsigned func)"
+.br
+.ti -1c
+.RI "struct \fBhwloc_obj\fP * \fBhwloc_pci_find_by_busid\fP (struct hwloc_topology *topology, unsigned domain, unsigned bus, unsigned dev, unsigned func)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+\fBNote\fP
+.RS 4
+These structures and functions may change when \fBHWLOC_COMPONENT_ABI\fP is modified\&. 
+.RE
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "struct \fBhwloc_obj\fP * hwloc_pci_find_by_busid (struct hwloc_topology * topology, unsigned domain, unsigned bus, unsigned dev, unsigned func)"
+
+.PP
+Find the PCI device or bridge matching a PCI bus ID exactly\&. This is useful for adding specific information about some objects based on their PCI id\&. When it comes to attaching objects based on PCI locality, \fBhwloc_pci_find_parent_by_busid()\fP should be preferred\&. 
+.SS "struct \fBhwloc_obj\fP * hwloc_pci_find_parent_by_busid (struct hwloc_topology * topology, unsigned domain, unsigned bus, unsigned dev, unsigned func)"
+
+.PP
+Find the object or a parent of a PCI bus ID\&. When attaching a new object (typically an OS device) whose locality is specified by PCI bus ID, this function returns the PCI object to use as a parent for attaching\&.
+
+.PP
+If the exact PCI device with this bus ID exists, it is returned\&. Otherwise (for instance if it was filtered out), the function returns another object with similar locality (for instance a parent bridge, or the local CPU Package)\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Hardware Locality (hwloc) from the source code\&.

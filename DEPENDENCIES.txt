@@ -12,3 +12,4 @@ taskflow https://github.com/taskflow/taskflow/releases
 highway https://github.com/google/highway/releases
 vma https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/releases
 glm https://github.com/g-truc/glm/releases
+hwloc https://www-lb.open-mpi.org/software/hwloc

@@ -1,0 +1,148 @@
+.TH "hwlocality_components_core_funcs" 3 "Version 2.15.0" "Hardware Locality (hwloc)" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+hwlocality_components_core_funcs \- Components and Plugins: Core functions to be used by components
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBHWLOC_SHOW_CRITICAL_ERRORS\fP()"
+.br
+.ti -1c
+.RI "#define \fBHWLOC_SHOW_ALL_ERRORS\fP()"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int \fBhwloc_hide_errors\fP (void)"
+.br
+.ti -1c
+.RI "\fBhwloc_obj_t\fP \fBhwloc__insert_object_by_cpuset\fP (struct hwloc_topology *topology, \fBhwloc_obj_t\fP root, \fBhwloc_obj_t\fP obj, const char *reason)"
+.br
+.ti -1c
+.RI "void \fBhwloc_insert_object_by_parent\fP (struct hwloc_topology *topology, \fBhwloc_obj_t\fP parent, \fBhwloc_obj_t\fP obj)"
+.br
+.ti -1c
+.RI "\fBhwloc_obj_t\fP \fBhwloc_alloc_setup_object\fP (\fBhwloc_topology_t\fP topology, \fBhwloc_obj_type_t\fP type, unsigned os_index)"
+.br
+.ti -1c
+.RI "int \fBhwloc_obj_add_children_sets\fP (\fBhwloc_obj_t\fP obj)"
+.br
+.ti -1c
+.RI "int \fBhwloc_topology_reconnect\fP (\fBhwloc_topology_t\fP topology, unsigned long flags)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.PP
+\fBNote\fP
+.RS 4
+These structures and functions may change when \fBHWLOC_COMPONENT_ABI\fP is modified\&. 
+.RE
+.PP
+
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define HWLOC_SHOW_ALL_ERRORS()"
+\fBValue:\fP
+.nf
+(hwloc_hide_errors() == 0)
+.PP
+.fi
+
+.SS "#define HWLOC_SHOW_CRITICAL_ERRORS()"
+\fBValue:\fP
+.nf
+(hwloc_hide_errors() < 2)
+.PP
+.fi
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBhwloc_obj_t\fP hwloc__insert_object_by_cpuset (struct hwloc_topology * topology, \fBhwloc_obj_t\fP root, \fBhwloc_obj_t\fP obj, const char * reason)"
+
+.PP
+Add an object to the topology\&. Insert new object \fRobj\fP in the topology starting under existing object \fRroot\fP (if \fRNULL\fP, the topology root object is used)\&.
+
+.PP
+It is sorted along the tree of other objects according to the inclusion of cpusets, to eventually be added as a child of the smallest object including this object\&.
+
+.PP
+If the cpuset is empty, the type of the object (and maybe some attributes) must be enough to find where to insert the object\&. This is especially true for NUMA nodes with memory and no CPUs\&.
+
+.PP
+The given object should not have children\&.
+
+.PP
+This shall only be called before levels are built\&.
+
+.PP
+The caller should check whether the object type is filtered-out before calling this function\&.
+
+.PP
+The topology cpuset/nodesets will be enlarged to include the object sets\&.
+
+.PP
+\fRreason\fP is a unique string identifying where and why this insertion call was performed (it will be displayed in case of internal insertion error)\&.
+
+.PP
+Returns the object on success\&. Returns NULL and frees obj on error\&. Returns another object and frees obj if it was merged with an identical pre-existing object\&. 
+.SS "\fBhwloc_obj_t\fP hwloc_alloc_setup_object (\fBhwloc_topology_t\fP topology, \fBhwloc_obj_type_t\fP type, unsigned os_index)"
+
+.PP
+Allocate and initialize an object of the given type and physical index\&. If \fRos_index\fP is unknown or irrelevant, use \fRHWLOC_UNKNOWN_INDEX\fP\&. 
+.SS "int hwloc_hide_errors (void )"
+
+.PP
+Check whether error messages are hidden\&. Callers should print critical error messages (e\&.g\&. invalid hw topo info, invalid config) only if this function returns strictly less than 2\&.
+
+.PP
+Callers should print non-critical error messages (e\&.g\&. failure to initialize CUDA) if this function returns 0\&.
+
+.PP
+This function return 1 by default (show critical only), 0 in lstopo (show all), or anything set in HWLOC_HIDE_ERRORS in the environment\&.
+
+.PP
+Use macros \fBHWLOC_SHOW_CRITICAL_ERRORS()\fP and \fBHWLOC_SHOW_ALL_ERRORS()\fP for clarity\&. 
+.SS "void hwloc_insert_object_by_parent (struct hwloc_topology * topology, \fBhwloc_obj_t\fP parent, \fBhwloc_obj_t\fP obj)"
+
+.PP
+Insert an object somewhere in the topology\&. It is added as the last child of the given parent\&. The cpuset is completely ignored, so strange objects such as I/O devices should preferably be inserted with this\&.
+
+.PP
+When used for "normal" children with cpusets (when importing from XML when duplicating a topology), the caller should make sure that:
+.IP "\(bu" 2
+children are inserted in order,
+.IP "\(bu" 2
+children cpusets do not intersect\&.
+.PP
+
+.PP
+The given object may have normal, I/O or Misc children, as long as they are in order as well\&. These children must have valid parent and next_sibling pointers\&.
+
+.PP
+The caller should check whether the object type is filtered-out before calling this function\&. 
+.SS "int hwloc_obj_add_children_sets (\fBhwloc_obj_t\fP obj)"
+
+.PP
+Setup object cpusets/nodesets by OR'ing its children\&. Used when adding an object late in the topology\&. Will update the new object by OR'ing all its new children sets\&.
+
+.PP
+Used when PCI backend adds a hostbridge parent, when distances add a new Group, etc\&. 
+.SS "int hwloc_topology_reconnect (\fBhwloc_topology_t\fP topology, unsigned long flags)"
+
+.PP
+Request a reconnection of children and levels in the topology\&. May be used by backends during discovery if they need arrays or lists of object within levels or children to be fully connected\&.
+
+.PP
+\fRflags\fP is currently unused, must 0\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Hardware Locality (hwloc) from the source code\&.

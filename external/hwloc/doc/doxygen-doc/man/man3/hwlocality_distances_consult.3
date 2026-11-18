@@ -1,0 +1,55 @@
+.TH "hwlocality_distances_consult" 3 "Version 2.15.0" "Hardware Locality (hwloc)" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+hwlocality_distances_consult \- Helpers for consulting distance matrices
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int \fBhwloc_distances_obj_index\fP (struct \fBhwloc_distances_s\fP *distances, \fBhwloc_obj_t\fP obj)"
+.br
+.ti -1c
+.RI "int \fBhwloc_distances_obj_pair_values\fP (struct \fBhwloc_distances_s\fP *distances, \fBhwloc_obj_t\fP obj1, \fBhwloc_obj_t\fP obj2, hwloc_uint64_t *value1to2, hwloc_uint64_t *value2to1)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Function Documentation"
+.PP 
+.SS "int hwloc_distances_obj_index (struct \fBhwloc_distances_s\fP * distances, \fBhwloc_obj_t\fP obj)\fR [inline]\fP"
+
+.PP
+Find the index of an object in a distances structure\&. 
+.PP
+\fBReturns\fP
+.RS 4
+the index of the object in the distances structure if any\&. 
+
+.PP
+-1 if object \fRobj\fP is not involved in structure \fRdistances\fP\&. 
+.RE
+.PP
+
+.SS "int hwloc_distances_obj_pair_values (struct \fBhwloc_distances_s\fP * distances, \fBhwloc_obj_t\fP obj1, \fBhwloc_obj_t\fP obj2, hwloc_uint64_t * value1to2, hwloc_uint64_t * value2to1)\fR [inline]\fP"
+
+.PP
+Find the values between two objects in a distance matrices\&. The distance from \fRobj1\fP to \fRobj2\fP is stored in the value pointed by \fRvalue1to2\fP and reciprocally\&.
+
+.PP
+\fBReturns\fP
+.RS 4
+0 on success\&. 
+
+.PP
+-1 if object \fRobj1\fP or \fRobj2\fP is not involved in structure \fRdistances\fP\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Hardware Locality (hwloc) from the source code\&.

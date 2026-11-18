@@ -1,5 +1,1 @@
 
-class GameCore {
-public:
-
-};

@@ -1,6 +1,8 @@
 #pragma once
 
-class gameCore {
+class GameCore {
+public:
+
 };
 
 

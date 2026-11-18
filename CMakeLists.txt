@@ -39,7 +39,6 @@ add_executable(SALF
         src/math/fixed.h
         src/math/fastMath.cpp
         src/math/fastMath.h
-        src/game/screens/screen.cpp
         src/game/screens/screen.h
 )
 

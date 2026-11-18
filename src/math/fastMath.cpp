@@ -6,12 +6,12 @@
 #include "fixed.h"
 
 namespace {
-    constexpr int SIN_TABLE_BITS = 10;
-    constexpr int SIN_TABLE_SIZE = 1 << SIN_TABLE_BITS;
-    constexpr int SIN_INDEX_SHIFT = 16 - SIN_TABLE_BITS;
+    constexpr int32_t SIN_TABLE_BITS = 10;
+    constexpr int32_t SIN_TABLE_SIZE = 1 << SIN_TABLE_BITS;
+    constexpr int32_t SIN_INDEX_SHIFT = 16 - SIN_TABLE_BITS;
 
-    constexpr int ATAN_TABLE_BITS = 9;
-    constexpr int ATAN_TABLE_SIZE = (1 << ATAN_TABLE_BITS) + 1;
+    constexpr int32_t ATAN_TABLE_BITS = 9;
+    constexpr int32_t ATAN_TABLE_SIZE = (1 << ATAN_TABLE_BITS) + 1;
 
 
     constexpr std::array<salf::fix_t, SIN_TABLE_SIZE> SIN_CACHE = {
@@ -254,9 +254,7 @@ namespace {
 }
 
 namespace salf {
-    constexpr uint8_t SHIFT = fix_t::SHIFT;
-
-    [[nodiscard]] constexpr bool isInRange(fix_t dx, fix_t dy, fix_t rSum) noexcept {
+    [[nodiscard]] bool isInRange(fix_t dx, fix_t dy, fix_t rSum) noexcept {
         if (rSum.num < 0) return false;
 
         int64_t wideDeltaX = dx.num;
@@ -270,13 +268,13 @@ namespace salf {
         return distanceSquared <= radiusSquared;
     }
 
-    [[nodiscard]] constexpr fix_t sqrt(fix_t value) noexcept {
+    [[nodiscard]] fix_t sqrt(fix_t value) noexcept {
         if (value.num <= 0) return {0};
         uint64_t shifted = static_cast<uint64_t>(value.num) << (fix_t::SHIFT + 2);
         return {static_cast<int32_t>((integerSqrt64(shifted) + 1) >> 1)};
     }
 
-    [[nodiscard]] constexpr fix_t distance(fix_t x1, fix_t y1, fix_t x2, fix_t y2) noexcept {
+    [[nodiscard]] fix_t distance(fix_t x1, fix_t y1, fix_t x2, fix_t y2) noexcept {
         int64_t deltaX = static_cast<int64_t>(x2.num) - x1.num;
         int64_t deltaY = static_cast<int64_t>(y2.num) - y1.num;
 
@@ -290,20 +288,20 @@ namespace salf {
         return {static_cast<int32_t>(integerSqrt64(distanceSquared))};
     }
 
-    [[nodiscard]] constexpr fix_t distance(fix_t deltaX, fix_t deltaY) noexcept {
+    [[nodiscard]] fix_t distance(fix_t deltaX, fix_t deltaY) noexcept {
         return distance({0}, {0}, deltaX, deltaY);
     }
 
-    [[nodiscard]] constexpr fix_t sin(angle_t angle) noexcept {
+    [[nodiscard]] fix_t sin(angle_t angle) noexcept {
         return SIN_CACHE[angle.num >> SIN_INDEX_SHIFT];
     }
 
-    [[nodiscard]] constexpr fix_t cos(angle_t angle) noexcept {
+    [[nodiscard]] fix_t cos(angle_t angle) noexcept {
         uint16_t shiftedAngle = static_cast<uint16_t>(angle.num + angle_t::QUARTER);
         return SIN_CACHE[shiftedAngle >> SIN_INDEX_SHIFT];
     }
 
-    [[nodiscard]] constexpr angle_t atan2(fix_t y, fix_t x) noexcept {
+    [[nodiscard]] angle_t atan2(fix_t y, fix_t x) noexcept {
         if (x.num == 0 && y.num == 0) return angle_t{0};
 
         int64_t absX = x.num < 0 ? -static_cast<int64_t>(x.num) : x.num;
