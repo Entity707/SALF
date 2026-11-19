@@ -1,21 +1,24 @@
 #include "log.h"
 
-
-#include "quill/Backend.h"
-#include "quill/Frontend.h"
-#include "quill/LogMacros.h"
-#include "quill/Logger.h"
-#include "quill/sinks/ConsoleSink.h"
-#include "quill/sinks/RotatingFileSink.h"
-
 #ifndef PROJECT_ROOT_DIR
 #define PROJECT_ROOT_DIR "."
 #endif
 
-namespace salf::util {
+namespace {
+    char const *logTypeStrings[] = {"[PERFORMANCE] ", "[HARDWARE] ", "[EVENT] "};
     quill::Logger *logger = nullptr;
     std::filesystem::path logPath = std::filesystem::path(PROJECT_ROOT_DIR) / "resources" / "logs" / "log.log";
 
+}
+namespace salf::util {
+    namespace detail {
+        quill::Logger* getLogger() {
+            return logger;
+        }
+        std::string_view getLogTypeString(LogType logType) {
+            return logTypeStrings[static_cast<std::size_t>(logType)];
+        }
+    }
     void initLoggers() {
         quill::Backend::start();
         auto consoleSink = quill::Frontend::create_or_get_sink<quill::ConsoleSink>("console_sink");
@@ -40,6 +43,9 @@ namespace salf::util {
                 "%Y-%m-%dT%H:%M:%S.%QmsZ",
                 quill::Timezone::GmtTime
             });
-        // LOG_INFO(logger, "log {}", 1234567789); //log example
     }
+
+
+
+
 }

@@ -5,7 +5,8 @@
 #include "util/log.h"
 
 int main() {
-    auto* gameCore = new GameCore();
     salf::util::initLoggers();
+    auto* gameCore = new GameCore();
+
     return 0;
 }
