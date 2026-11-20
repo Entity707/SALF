@@ -110,6 +110,16 @@ add_executable(SALF
         src/game/screens/screen.h
         src/util/log.cpp
         src/util/log.h
+        src/vk/vkInit.cpp
+        src/vk/vkInit.h
+        src/vk/vkRender.cpp
+        src/vk/vkRender.h
+        src/vk/vkManager.cpp
+        src/vk/vkManager.h
+        src/vk/vkCleanup.cpp
+        src/vk/vkCleanup.h
+        src/vk/vkShaderCompiler.cpp
+        src/vk/vkShaderCompiler.h
 )
 
 add_executable(generateSinCache
